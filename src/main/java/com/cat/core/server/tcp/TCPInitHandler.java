@@ -1,22 +1,22 @@
 package com.cat.core.server.tcp;
 
-import com.cat.core.server.tcp.session.TCPSessionManager;
+import com.cat.core.server.tcp.session.DefaultEventHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * 监听TCP连接事件
+ * TCP初始化时注册监听事件
  */
-final class TCPEventHandler extends ChannelInboundHandlerAdapter {
+final class TCPInitHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		TCPSessionManager.init(ctx.channel());
+		DefaultEventHandler.instance().create(ctx.channel());
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		TCPSessionManager.close(ctx.channel());
+		DefaultEventHandler.instance().close(ctx.channel());
 	}
 
 	@Override

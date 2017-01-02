@@ -4,9 +4,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
-import static com.dnake.smart.core.dict.Packet.*;
-import static com.dnake.smart.core.kit.ByteKit.compare;
-import static com.dnake.smart.core.kit.ByteKit.smallIntToByteArray;
+import static com.cat.core.dict.Packet.*;
+import static com.cat.core.kit.ByteKit.compare;
+import static com.cat.core.kit.ByteKit.smallIntToByteArray;
 
 public class CodecKit {
 

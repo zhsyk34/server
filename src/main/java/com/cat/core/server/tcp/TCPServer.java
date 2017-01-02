@@ -74,7 +74,7 @@ public final class TCPServer {
 		@Override
 		protected void initChannel(SocketChannel ch) throws Exception {
 			ChannelPipeline pipeline = ch.pipeline();
-			pipeline.addLast(new TCPEventHandler());
+			pipeline.addLast(new TCPInitHandler());
 			pipeline.addLast(new TCPDecoder());
 			pipeline.addLast(new TCPEncoder());
 			pipeline.addLast(new TCPLoginHandler());

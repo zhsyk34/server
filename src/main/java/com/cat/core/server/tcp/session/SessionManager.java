@@ -2,17 +2,25 @@ package com.cat.core.server.tcp.session;
 
 import com.cat.core.config.Config;
 import com.cat.core.kit.ThreadKit;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
 import com.cat.core.server.dict.Device;
+import com.cat.core.server.tcp.message.MessageManager;
+import com.cat.core.server.udp.session.UDPInfo;
+import com.cat.core.server.udp.session.UDPManager;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * TCP会话(连接)管理
  */
-public final class TCPSessionManager {
+public final class SessionManager {
+
+	private static final DefaultEventHandler handler = DefaultEventHandler.instance();
 
 	/**
 	 * 请求连接(登录后移除)
@@ -30,121 +38,139 @@ public final class TCPSessionManager {
 	 */
 	private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
 
-	 /* ----------------------------------------TCP会话事件处理----------------------------------------*/
+	/* ----------------------------------------连接信息----------------------------------------*/
+
+	private static String ip(@NonNull Channel channel) {
+		return ((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress();
+	}
+
+//	private static int port(@NonNull Channel channel) {
+//		return ((InetSocketAddress) channel.remoteAddress()).getPort();
+//	}
+
+	public static String id(@NonNull Channel channel) {
+		return channel.id().asLongText();
+	}
+
+
+	/* ----------------------------------------会话管理----------------------------------------*/
 
 	/**
-	 * 初始化连接
+	 * init and register in to accept context
 	 */
-	public static void init(Channel channel) {
-		if (TCPSessions.create(channel)) {
-			ACCEPT_MAP.put(TCPSessions.id(channel), channel);
-		} else {
-			close(channel);
-		}
+	static void init(Channel channel) {
+		ACCEPT_MAP.put(id(channel), channel);
 	}
 
 	/**
-	 * 处理登录请求
+	 * remove record from init at accept
+	 * allocate udp port for gateway and default 0 for app
+	 * if wrong return -1
 	 */
-	public static String ready(@NonNull Channel channel, @NonNull Device device, @NonNull String sn, Integer port) {
-		return TCPSessions.request(channel, device, sn, port);
-	}
-
-	/**
-	 * 进行登录码校验
-	 */
-	public static boolean verify(Channel channel, String code) {
-		return TCPSessions.verify(channel, code);
-	}
-
-	/**
-	 * (分配端口)完成登录并在相应队列中登记
-	 */
-	public static int pass(Channel channel) {
-		if (ACCEPT_MAP.remove(TCPSessions.id(channel)) == null) {
+	static int allocate(@NonNull Channel channel) {
+		if (ACCEPT_MAP.remove(id(channel)) == null) {
 			//正常情况下此连接已被关闭
 			Log.logger(Factory.TCP_EVENT, "登录超时(未及时登录,会话已关闭)");
 			return -1;
 		}
 
-		int port = TCPSessions.allocate(channel);
-		switch (port) {
-			case -1:
+		LoginInfo info = handler.info(channel);
+
+		int allocated;
+		switch (info.getDevice()) {
+			case APP:
+				allocated = 0;
 				break;
-			case 0:
-				APP_MAP.put(TCPSessions.id(channel), channel);
+			case GATEWAY:
+				allocated = PortManager.allocate(info.getSn(), ip(channel), info.getApply());
 				break;
 			default:
-				String sn = TCPSessions.sn(channel);
-				Channel original = GATEWAY_MAP.remove(sn);
-				if (original != null) {
-					Log.logger(Factory.TCP_EVENT, "关闭[" + sn + "]已有的连接");
-					TCPSessions.close(original);
-				}
-				GATEWAY_MAP.put(sn, channel);
-				TCPMessageManager.loginPush(TCPSessions.info(channel));
+				allocated = -1;
+				break;
 		}
 
-		return TCPSessions.pass(channel, port) ? port : -1;
+		info.setApply(allocated);
+
+		return allocated;
 	}
 
-	public static boolean passed(Channel channel) {
-		return TCPSessions.passed(channel);
+	/**
+	 * TODO UDP推送
+	 * when login success register to context
+	 */
+	static void register(@NonNull Channel channel) {
+		LoginInfo info = handler.info(channel);
+
+		Channel original;
+		switch (info.getDevice()) {
+			case APP:
+				original = APP_MAP.put(id(channel), channel);
+				break;
+			case GATEWAY:
+				/*push*/
+				MessageManager.push(channel, true);
+
+				original = GATEWAY_MAP.put(info.getSn(), channel);
+				break;
+			default:
+				original = null;
+				break;
+		}
+
+		if (original != null) {
+			original.close();
+		}
 	}
 
 	/**
 	 * 根据sn关闭网关连接
 	 * 存在网关重新登录后被关闭的可能
 	 */
-	public static boolean close(String sn) {
+	public static void unRegister(String sn) {
 		Channel channel = GATEWAY_MAP.remove(sn);
-		TCPMessageManager.logoutPush(sn);
-		return TCPSessions.close(channel);
+		if (channel != null) {
+			channel.close();
+		}
+
+		/*push*/
+		MessageManager.push(channel, false);
 	}
 
 	/**
 	 * 关闭连接并将其从相应的队列中移除
 	 */
-	public static boolean close(Channel channel) {
-		if (channel == null || !channel.isOpen()) {
-			return true;
-		}
-		Log.logger(Factory.TCP_EVENT, "关闭[" + channel.remoteAddress() + "]连接");
-		//先直接关闭channel
-		TCPSessions.close(channel);
-		String id = TCPSessions.id(channel);
+	static boolean unRegister(@NonNull Channel channel) {
+		channel.close();
 
-		//在未登录队列中查找
-		if (ACCEPT_MAP.remove(id, channel)) {
+		if (ACCEPT_MAP.remove(id(channel), channel)) {
 			return true;
 		}
 
-		Device device = TCPSessions.device(channel);
-
-		if (device == null) {
-			//尚未登录,应在此前已删除
-			Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "该连接超时未登录已被关闭");
+		LoginInfo info = DefaultEventHandler.instance().info(channel);
+		if (info == null) {
+			//normally it won't happen
 			return false;
 		}
+
+		Device device = info.getDevice();
 
 		//已进入登录环节
 		switch (device) {
 			case APP:
-				if (APP_MAP.remove(id, channel)) {
+				if (APP_MAP.remove(id(channel), channel)) {
 					return true;
-				} else {
-					Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "客户端关闭出错,在app队列中查找不到该连接(可能在线时长已到被移除)");
-					return false;
 				}
+				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "客户端关闭出错,在app队列中查找不到该连接(可能在线时长已到被移除)");
+				return false;
 			case GATEWAY:
-				String sn = TCPSessions.sn(channel);
-				if (GATEWAY_MAP.remove(sn, channel)) {
-					TCPMessageManager.logoutPush(sn);
+				if (GATEWAY_MAP.remove(info.getSn(), channel)) {
+					/*push*/
+					MessageManager.push(channel, false);
+
 					return true;
-				} else {
-					Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关关闭出错,在网关队列中查找不到该连接(可能在线时长已到被移除)");
-					return false;
 				}
+				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关关闭出错,在网关队列中查找不到该连接(可能在线时长已到被移除)");
+				return false;
 			default:
 				Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
 				return false;
@@ -155,13 +181,13 @@ public final class TCPSessionManager {
 	 * 尝试唤醒网关
 	 */
 	private static boolean awake(String sn) {
-		Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]下线,尝试唤醒...");
 		Channel channel = GATEWAY_MAP.get(sn);
 		if (channel != null) {
 			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]已登录");
 			return true;
 		}
-		UDPInfo info = UDPSessionManager.find(sn);
+
+		UDPInfo info = UDPManager.find(sn);
 		if (info == null) {
 			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]掉线(无udp心跳),无法唤醒");
 			return false;
@@ -175,15 +201,15 @@ public final class TCPSessionManager {
 		while (chance < 3 && !GATEWAY_MAP.containsKey(sn)) {
 			chance++;
 
-			UDPSessionManager.awake(ip, port);
+			UDPManager.awake(ip, port);
 			ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
 			if (GATEWAY_MAP.containsKey(sn)) {
 				return true;
 			}
 
-			int allocated = PortAllocator.port(ip, sn);//服务器分配端口
+			int allocated = PortManager.port(ip, sn);//服务器分配端口
 			if (allocated != port) {
-				UDPSessionManager.awake(ip, allocated);
+				UDPManager.awake(ip, allocated);
 				ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
 			}
 		}
@@ -235,6 +261,6 @@ public final class TCPSessionManager {
 	 */
 	public static void monitor() {
 		System.err.println("gateway count:[" + GATEWAY_MAP.size() + "]");
-		GATEWAY_MAP.forEach((sn, channel) -> System.err.println(TCPSessions.info(channel)));
+		GATEWAY_MAP.forEach((sn, channel) -> System.err.println(handler.info(channel)));
 	}
 }

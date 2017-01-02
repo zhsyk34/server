@@ -40,7 +40,7 @@ public enum Action {
 	/**
 	 * 4.本服务器主动推送至web服务器
 	 */
-	TCP_LOGIN_PUSH(4, "login", "网关tcp登录推送"),
+	TCP_LOGIN_PUSH(4, "session", "网关tcp登录推送"),
 	TCP_LOGOUT_PUSH(4, "logout", "网关tcp离线推送"),
 	UDP_SESSION_PUSH(4, "udpPush", "udp会话信息推送"),
 

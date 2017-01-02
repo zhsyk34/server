@@ -4,6 +4,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 会话状态
  */
@@ -19,7 +22,27 @@ public enum State {
 	SUCCESS(6, "登录成功"),
 	CLOSED(7, "连接关闭");
 
+	public static final Map<Integer, State> MAP = new HashMap<>();
+
+	static {
+		for (State state : values()) {
+			MAP.put(state.getStep(), state);
+		}
+	}
+
 	private final int step;
 	private final String description;
+
+	public static State from(int step) {
+		return MAP.get(step);
+	}
+
+	public State previous() {
+		return from(this.getStep() - 1);
+	}
+
+	public State next() {
+		return from(this.getStep() + 1);
+	}
 
 }

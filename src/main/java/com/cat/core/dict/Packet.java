@@ -1,4 +1,4 @@
-package com.cat.core.server.dict;
+package com.cat.core.dict;
 
 import java.util.Arrays;
 import java.util.Collections;
