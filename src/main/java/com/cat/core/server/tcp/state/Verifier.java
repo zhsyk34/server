@@ -1,4 +1,4 @@
-package com.cat.core.server.tcp.session;
+package com.cat.core.server.tcp.state;
 
 import com.cat.core.kit.CodecKit;
 import com.cat.core.kit.RandomKit;
@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-final class Verifier {
+public final class Verifier {
 	private final String question;
 	private final String answer;
 

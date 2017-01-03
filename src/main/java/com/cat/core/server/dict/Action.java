@@ -44,8 +44,13 @@ public enum Action {
 	TCP_LOGOUT_PUSH(4, "logout", "网关tcp离线推送"),
 	UDP_SESSION_PUSH(4, "udpPush", "udp会话信息推送"),
 
-	//test TODO
-	TEST(5, "test", "测试");
+	/**
+	 * 版本信息请求,直接响应
+	 */
+	GET_VERSION(5, "getVersion", "获取服务器上网关版本信息"),
+
+	//TODO
+	TEST(6, "test", "test");
 
 	private static final Map<String, Action> MAP = new HashMap<>();
 

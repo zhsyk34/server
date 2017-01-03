@@ -1,6 +1,5 @@
 package com.cat.core.server.tcp;
 
-import com.cat.core.server.tcp.session.DefaultEventHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -9,14 +8,16 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 final class TCPInitHandler extends ChannelInboundHandlerAdapter {
 
+	private final Manager handler = Manager.instance();
+
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		DefaultEventHandler.instance().create(ctx.channel());
+		handler.create(ctx.channel());
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		DefaultEventHandler.instance().close(ctx.channel());
+		handler.close(ctx.channel());
 	}
 
 	@Override

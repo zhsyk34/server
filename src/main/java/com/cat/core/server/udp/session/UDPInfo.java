@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.net.InetSocketAddress;
 
 /**
- * 网关UDP心跳信息
+ * udp heart beat info
  */
 @RequiredArgsConstructor(staticName = "of")
 @Getter

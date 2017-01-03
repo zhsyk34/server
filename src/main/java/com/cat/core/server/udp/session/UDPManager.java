@@ -10,6 +10,7 @@ import com.cat.core.server.tcp.message.UDPPusher;
 import com.cat.core.server.udp.UDPServer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 
@@ -21,11 +22,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * UDP心跳管理
+ * udp server manager
  */
 public final class UDPManager {
+
 	/**
-	 * 网关UDP心跳记录,key=sn
+	 * gateway udp session info,the key is gateway-sn
 	 */
 	private static final Map<String, UDPInfo> GATEWAY_INFO_MAP = new ConcurrentHashMap<>();
 
@@ -33,15 +35,12 @@ public final class UDPManager {
 		return GATEWAY_INFO_MAP.get(sn);
 	}
 
-	/**
-	 * 缓存接收的网关心跳信息
-	 */
 	public static void receive(UDPInfo info) {
 		GATEWAY_INFO_MAP.put(info.getSn(), info);
 	}
 
 	/**
-	 * 响应网关心跳
+	 * response udp heart beat
 	 */
 	public static void response(InetSocketAddress target) {
 		JSONObject json = new JSONObject();
@@ -49,20 +48,32 @@ public final class UDPManager {
 		send(target, json);
 	}
 
+	/**
+	 * send message to awake gateway login
+	 */
 	public static void awake(String host, int port) {
 		awake(new InetSocketAddress(host, port));
 	}
 
-	private static void awake(InetSocketAddress target) {
+	public static void awake(InetSocketAddress target) {
 		JSONObject json = new JSONObject();
 		json.put(Key.ACTION.getName(), Action.LOGIN_INFORM.getName());
 		send(target, json);
 	}
 
+	private static void send(InetSocketAddress target, JSONObject json) {
+		Channel channel = UDPServer.getChannel();
+
+		if (channel != null) {
+			ByteBuf buf = Unpooled.copiedBuffer(json.toString().getBytes(CharsetUtil.UTF_8));
+			channel.writeAndFlush(new DatagramPacket(buf, target));
+		}
+	}
+
 	/**
-	 * 清理过期的数据
+	 * clean stale data
 	 */
-	public static void monitor() {
+	public static void clean() {
 		Iterator<Map.Entry<String, UDPInfo>> iterator = GATEWAY_INFO_MAP.entrySet().iterator();
 		while (iterator.hasNext()) {
 			UDPInfo info = iterator.next().getValue();
@@ -74,23 +85,12 @@ public final class UDPManager {
 	}
 
 	/**
-	 * @param target 目标地址
-	 * @param json   JSON数据
-	 */
-	private static void send(InetSocketAddress target, JSONObject json) {
-		if (UDPServer.getChannel() == null) {
-			return;
-		}
-		ByteBuf buf = Unpooled.copiedBuffer(json.toString().getBytes(CharsetUtil.UTF_8));
-		UDPServer.getChannel().writeAndFlush(new DatagramPacket(buf, target));
-	}
-
-	/**
-	 * 推送udp信息至web服务器
+	 * push session data to web server by udp
 	 */
 	public static void push() {
 		List<UDPInfo> list = new ArrayList<>(GATEWAY_INFO_MAP.values());
 
+		//TODO
 		final int batch = 10;
 
 		for (int i = 0; i < list.size(); i += batch) {

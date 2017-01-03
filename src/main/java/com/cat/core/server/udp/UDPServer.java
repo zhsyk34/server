@@ -15,7 +15,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * UDP服务器,主要用于接收/保存心跳信息以唤醒下线网关登录
+ * udp server,receive and save udp heart beat info to awaken it to login by tcp
  */
 public final class UDPServer {
 

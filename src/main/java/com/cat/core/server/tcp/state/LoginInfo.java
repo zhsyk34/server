@@ -1,4 +1,4 @@
-package com.cat.core.server.tcp.session;
+package com.cat.core.server.tcp.state;
 
 import com.alibaba.fastjson.JSONObject;
 import com.cat.core.server.dict.Device;

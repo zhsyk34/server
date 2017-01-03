@@ -11,9 +11,6 @@ import io.netty.util.CharsetUtil;
 
 import java.util.List;
 
-/**
- * UDP编解码处理器
- */
 final class UDPCoder extends MessageToMessageCodec<DatagramPacket, DatagramPacket> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) throws Exception {

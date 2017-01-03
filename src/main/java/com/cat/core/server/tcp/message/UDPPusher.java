@@ -29,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class UDPPusher {
 
 	private static final Lock lock = new ReentrantLock();
+	private static final InetSocketAddress WEB_UDP_SERVICE = new InetSocketAddress(Config.UDP_WEB_IP, Config.UDP_WEB_PORT);
 
 	@Getter
 	private static Channel channel;
@@ -73,9 +74,9 @@ public final class UDPPusher {
 		if (channel == null) {
 			return false;
 		}
-		InetSocketAddress target = new InetSocketAddress(Config.UDP_WEB_IP, Config.UDP_WEB_PORT);
+
 		ByteBuf buf = Unpooled.copiedBuffer(msg.getBytes(CharsetUtil.UTF_8));
-		channel.writeAndFlush(new DatagramPacket(buf, target));
+		channel.writeAndFlush(new DatagramPacket(buf, WEB_UDP_SERVICE));
 		return true;
 	}
 }
