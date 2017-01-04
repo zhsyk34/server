@@ -1,6 +1,6 @@
 package com.cat.core.server.tcp.session;
 
-import com.cat.core.server.dict.Device;
+import com.cat.core.server.data.Device;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
@@ -16,33 +16,34 @@ public interface SessionHandler {
 	void active(@NonNull Channel channel);
 
 	/**
-	 * awake un login gateway client
+	 * awake un-login gateway client
 	 */
 	boolean awake(@NonNull String sn);
 
 	/**
-	 * allocate udp port if necessary
+	 * allocate udp port2 if necessary(just for gateway)
 	 */
 	int assign(@NonNull Channel channel);
 
 	/**
-	 * haven pass the verify
+	 * for login success
 	 */
 	void register(@NonNull Channel channel);
 
 	/**
-	 * close channel and release
+	 * close channel and release the resources
 	 */
 	boolean unRegister(@NonNull Channel channel);
 
 	/**
 	 * close channel by key with assigned type
+	 * it possible close the channel who login later
 	 */
 	boolean close(@NonNull String key, Device device);
 
 	/**
-	 * monitor resource
+	 * monitor register channel
 	 */
-	void monitor(Device device);
+	void monitor();
 
 }

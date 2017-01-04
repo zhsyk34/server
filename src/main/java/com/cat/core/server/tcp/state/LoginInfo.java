@@ -1,12 +1,9 @@
 package com.cat.core.server.tcp.state;
 
 import com.alibaba.fastjson.JSONObject;
-import com.cat.core.server.dict.Device;
-import com.cat.core.server.dict.Key;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.cat.core.server.data.Device;
+import com.cat.core.server.data.Key;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 /**
@@ -23,7 +20,7 @@ public final class LoginInfo {
 	private int apply;
 	private long happen;
 
-	public static LoginInfo from(JSONObject json) {
+	public static LoginInfo from(@NonNull JSONObject json) {
 		String sn = json.getString(Key.SN.getName());
 		Device device = Device.from(json.getIntValue(Key.TYPE.getName()));
 		Integer apply = json.getInteger(Key.ALLOT.getName());

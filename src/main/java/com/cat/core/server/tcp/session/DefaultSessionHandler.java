@@ -4,12 +4,13 @@ import com.cat.core.config.Config;
 import com.cat.core.kit.ThreadKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
-import com.cat.core.server.dict.Device;
-import com.cat.core.server.tcp.message.MessageHandler;
+import com.cat.core.server.data.Device;
+import com.cat.core.server.tcp.port.PortHandler;
 import com.cat.core.server.tcp.state.ChannelData;
 import com.cat.core.server.tcp.state.LoginInfo;
 import com.cat.core.server.udp.session.UDPInfo;
 import com.cat.core.server.udp.session.UDPManager;
+import com.cat.core.server.web.PushHandler;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,8 @@ public final class DefaultSessionHandler implements SessionHandler {
 	private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
 	private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
 	private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
-	private final MessageHandler messageHandler;
+	private final PortHandler portHandler;
+	private final PushHandler pushHandler;
 
 	@Override
 	public void active(@NonNull Channel channel) {
@@ -58,7 +60,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 				return true;
 			}
 
-			int allocated = PortManager.port(ip, sn);//服务器分配端口
+			int allocated = portHandler.port(ip, sn);//服务器分配端口
 			if (allocated != port) {
 				UDPManager.awake(ip, allocated);
 				ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
@@ -78,7 +80,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 				allocated = 0;
 				break;
 			case GATEWAY:
-				allocated = PortManager.allocate(info.getSn(), ChannelData.ip(channel), info.getApply());
+				allocated = portHandler.allocate(info.getSn(), ChannelData.ip(channel), info.getApply());
 				break;
 			default:
 				allocated = -1;
@@ -107,8 +109,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 				Log.logger(Factory.TCP_EVENT, "app[" + id + "]上线");
 				break;
 			case GATEWAY:
-				/*TODO:push*/
-				messageHandler.push(channel, true);
+				pushHandler.push(GatewayInfo.login(channel));
 
 				original = GATEWAY_MAP.put(info.getSn(), channel);
 				Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]上线");
@@ -126,7 +127,8 @@ public final class DefaultSessionHandler implements SessionHandler {
 
 	@Override
 	public boolean unRegister(@NonNull Channel channel) {
-		if (ACCEPT_MAP.remove(ChannelData.id(channel), channel)) {
+		String id = ChannelData.id(channel);
+		if (ACCEPT_MAP.remove(id, channel)) {
 			return true;
 		}
 
@@ -137,19 +139,23 @@ public final class DefaultSessionHandler implements SessionHandler {
 		}
 
 		Device device = info.getDevice();
+		if (device == null) {
+			//normally it won't happen
+			return false;
+		}
 
 		//已进入登录环节
 		switch (device) {
 			case APP:
-				if (APP_MAP.remove(ChannelData.id(channel), channel)) {
+				if (APP_MAP.remove(id, channel)) {
 					return true;
 				}
 				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "客户端关闭出错,在app队列中查找不到该连接(可能在线时长已到被移除或网关重新登录关闭原有连接)");
 				return false;
 			case GATEWAY:
+				//different with close(key)
 				if (GATEWAY_MAP.remove(info.getSn(), channel)) {
-					/*TODO:push*/
-					messageHandler.push(channel, false);
+					pushHandler.push(GatewayInfo.logout(channel));
 
 					Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]下线");
 					return true;
@@ -176,8 +182,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 				case GATEWAY:
 					channel = GATEWAY_MAP.remove(key);
 					if (channel != null) {
-						//TODO:push
-						messageHandler.push(channel, false);
+						pushHandler.push(GatewayInfo.logout(channel));
 					}
 					break;
 				default:
@@ -207,7 +212,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 	}
 
 	@Override
-	public void monitor(Device device) {
+	public void monitor() {
 		//TODO
 		System.err.println("accept count:[" + ACCEPT_MAP.size() + "]");
 		System.err.println("gateway count:[" + GATEWAY_MAP.size() + "]");

@@ -1,10 +1,10 @@
 package com.cat.core.server.tcp.state;
 
 import com.alibaba.fastjson.JSONObject;
-import com.cat.core.server.dict.Action;
-import com.cat.core.server.dict.ErrNo;
-import com.cat.core.server.dict.Key;
-import com.cat.core.server.dict.Result;
+import com.cat.core.server.data.Action;
+import com.cat.core.server.data.ErrNo;
+import com.cat.core.server.data.Key;
+import com.cat.core.server.data.Result;
 import com.cat.core.server.tcp.session.SessionHandler;
 import io.netty.channel.Channel;
 import lombok.NonNull;

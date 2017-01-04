@@ -1,7 +1,6 @@
 package com.cat.core.server.tcp;
 
 import com.cat.core.kit.ThreadKit;
-import com.cat.core.server.tcp.session.DefaultSessionHandler;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,7 +8,10 @@ import java.util.concurrent.TimeUnit;
 
 public class TCPServerTest {
 
+	private static final Controller manager = Controller.instance();
+
 	public static void main(String[] args) {
+
 		ScheduledExecutorService service = Executors.newScheduledThreadPool(4);
 
 		service.submit(TCPServer::start);
@@ -24,14 +26,13 @@ public class TCPServerTest {
 //			ThreadKit.await(1000);
 //		}
 
-//		service.submit(() -> {
-//			while (true) {
-//				DefaultMessageHandler.process();
-//			}
-//		});
+		service.submit(() -> {
+			while (true) {
+				manager.process();
+			}
+		});
 //
-//		service.scheduleAtFixedRate(DefaultMessageHandler::total, 1, 6, TimeUnit.SECONDS);
 //
-		service.scheduleAtFixedRate(() -> DefaultSessionHandler.instance().monitor(null), 1, 5, TimeUnit.SECONDS);
+		service.scheduleAtFixedRate(() -> Controller.instance().monitor(), 1, 5, TimeUnit.SECONDS);
 	}
 }

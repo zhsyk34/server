@@ -11,7 +11,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * 等待网关处理的app消息队列
+ * put the same request target in the queue
+ * and wait to process one by one
  */
 @NoArgsConstructor(staticName = "instance")
 @Getter
@@ -22,7 +23,7 @@ final class AppRequestQueue {
 	private volatile long time = -1;
 
 	/**
-	 * 重置队列状态
+	 * reset the queue status
 	 */
 	private synchronized AppRequestQueue reset() {
 		this.send = false;
@@ -31,7 +32,7 @@ final class AppRequestQueue {
 	}
 
 	/**
-	 * 当队列数据被处理时开启警戒状态以进行监测
+	 * when begin to process the message queue,guard it
 	 */
 	private synchronized AppRequestQueue guard() {
 		this.send = true;
@@ -40,15 +41,16 @@ final class AppRequestQueue {
 	}
 
 	/**
-	 * 添加数据
+	 * offer the new message
 	 */
 	boolean offer(AppRequest request) {
 		return request != null && queue.offer(request);
 	}
 
 	/**
-	 * 处理队首元素,先查看其是否正被处理
-	 * 如是则不进行任何操作,否则取出并进入警戒状态
+	 * when process the message
+	 * check the status
+	 * if not send yet try to peek the first one and guard it
 	 */
 	synchronized AppRequest peek() {
 		if (send) {
@@ -63,7 +65,8 @@ final class AppRequestQueue {
 	}
 
 	/**
-	 * 移除已处理完的数据并重置状态
+	 * when the first message have done,remove it and reset the status
+	 * before this check the send status
 	 */
 	synchronized AppRequest poll() {
 		if (!send) {
@@ -78,7 +81,8 @@ final class AppRequestQueue {
 	}
 
 	/**
-	 * 清空队列并返回当前队列中所有元素的副本
+	 * clear all queue and reset status
+	 * and return clone queue for process after
 	 */
 	synchronized Queue<AppRequest> clear() {
 		if (send && !ValidateKit.time(time, Config.TCP_MESSAGE_HANDLE_TIMEOUT)) {

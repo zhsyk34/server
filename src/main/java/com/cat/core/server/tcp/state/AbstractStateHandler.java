@@ -1,6 +1,6 @@
 package com.cat.core.server.tcp.state;
 
-import com.cat.core.server.dict.State;
+import com.cat.core.server.data.State;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 
@@ -28,7 +28,7 @@ abstract class AbstractStateHandler implements StateHandler {
 	}
 
 	/**
-	 * update session info by:sn, device and apply port
+	 * update session info by:sn, device and apply port2
 	 * and generator the verifier
 	 */
 	@Override
@@ -103,7 +103,7 @@ abstract class AbstractStateHandler implements StateHandler {
 	}
 
 	/**
-	 * allocate the port
+	 * allocate the port2
 	 */
 	@Override
 	public void wait(@NonNull Channel channel) {
@@ -117,7 +117,7 @@ abstract class AbstractStateHandler implements StateHandler {
 	}
 
 	/**
-	 * update the port
+	 * update the port2
 	 */
 	@Override
 	public void success(@NonNull Channel channel, int allocated) {

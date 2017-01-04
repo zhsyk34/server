@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * TCP包数据格式
  */
-public class Packet {
+public final class Packet {
 	//header
 	public static final List<Byte> HEADERS = Collections.unmodifiableList(Arrays.asList((byte) 0x5A, (byte) 0xA5));
 	//footer

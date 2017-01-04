@@ -2,9 +2,12 @@ package com.cat.core.server.tcp;
 
 import com.alibaba.fastjson.JSONObject;
 import com.cat.core.kit.JsonKit;
-import com.cat.core.server.dict.Action;
-import com.cat.core.server.dict.Key;
-import com.cat.core.server.dict.Result;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
+import com.cat.core.server.data.Action;
+import com.cat.core.server.data.Key;
+import com.cat.core.server.data.Result;
+import com.cat.core.server.tcp.message.AppRequest;
 import com.cat.core.server.tcp.message.DefaultMessageHandler;
 import com.cat.core.server.tcp.state.ChannelData;
 import com.cat.core.server.tcp.state.LoginInfo;
@@ -21,6 +24,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * 4.app控制指令与网关响应信息交由 {@link DefaultMessageHandler} 统一管理
  */
 final class TCPServerHandler extends ChannelInboundHandlerAdapter {
+
+	private final Controller handler = Controller.instance();
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -40,14 +45,14 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 		switch (info.getDevice()) {
 			case APP:
 				if (action != null) {
-//					Log.logger(Factory.TCP_RECEIVE, "客户端请求[" + command + "],将其添加到消息处理队列...");
-//					DefaultMessageHandler.register(sn, AppRequest.of(ChannelData.id(channel), command));
+					Log.logger(Factory.TCP_RECEIVE, "客户端请求[" + command + "],将其添加到消息处理队列...");
+					handler.receive(sn, AppRequest.of(ChannelData.id(channel), command));
 				}
 				return;
 			case GATEWAY:
 				//1.心跳
 				if (action == Action.HEART_BEAT) {
-//					Log.logger(Factory.TCP_RECEIVE, "网关[" + info.getSn() + "] 发送心跳");
+					Log.logger(Factory.TCP_RECEIVE, "网关[" + info.getSn() + "] 发送心跳");
 					JSONObject heartResp = new JSONObject();
 					heartResp.put(Key.RESULT.getName(), Result.OK.getName());
 					channel.writeAndFlush(heartResp);
@@ -56,8 +61,10 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 
 				//2.推送
 				if (action != null && action.getType() == 4) {
-//					Log.logger(Factory.TCP_RECEIVE, "网关[" + sn + "]推送数据...");
-					DefaultMessageHandler.push(sn, command);
+					Log.logger(Factory.TCP_RECEIVE, "网关[" + sn + "]推送数据...");
+					//append sn
+					json.put(Key.SN.getName(), sn);
+					handler.push(json.toString());
 					return;
 				}
 
@@ -69,8 +76,8 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 
 				//4.响应请求
 				if (result != null) {
-//					Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]回复app请求,转发...");
-//					DefaultMessageHandler.response(sn, command);
+					Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]回复app请求,转发...");
+					handler.response(sn, command);
 				}
 				break;
 			default:

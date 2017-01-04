@@ -1,8 +1,8 @@
 package com.cat.core.server.tcp.state;
 
 import com.cat.core.config.Config;
-import com.cat.core.server.dict.Device;
-import com.cat.core.server.dict.State;
+import com.cat.core.server.data.Device;
+import com.cat.core.server.data.State;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import lombok.NonNull;
@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
  */
 public final class ChannelData {
 
-	private static final AttributeKey<LoginInfo> INFO = AttributeKey.newInstance(LoginInfo.class.getSimpleName());
+	private static final AttributeKey<LoginInfo> LOGIN_INFO = AttributeKey.newInstance(LoginInfo.class.getSimpleName());
 	private static final AttributeKey<Verifier> VERIFIER = AttributeKey.newInstance(Verifier.class.getSimpleName());
 	private static final AttributeKey<State> STATE = AttributeKey.newInstance(State.class.getSimpleName());
 
@@ -38,11 +38,11 @@ public final class ChannelData {
 	 * info
 	 */
 	public static LoginInfo info(@NonNull Channel channel) {
-		return channel.attr(INFO).get();
+		return channel.attr(LOGIN_INFO).get();
 	}
 
 	static void info(@NonNull Channel channel, LoginInfo info) {
-		channel.attr(INFO).set(info);
+		channel.attr(LOGIN_INFO).set(info);
 	}
 
 	/**
@@ -63,7 +63,7 @@ public final class ChannelData {
 		return channel.attr(STATE).get();
 	}
 
-	static void state(@NonNull Channel channel, @NonNull State state) {
+	public static void state(@NonNull Channel channel, @NonNull State state) {
 		channel.attr(STATE).set(state);
 	}
 
@@ -71,7 +71,7 @@ public final class ChannelData {
 	/*---------------------------------------check kit---------------------------------------*/
 
 	/**
-	 * check apply port
+	 * check apply port2
 	 */
 	private static boolean check(@NonNull Device device, Integer apply) {
 		switch (device) {

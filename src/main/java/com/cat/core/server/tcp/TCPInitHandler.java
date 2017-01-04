@@ -8,7 +8,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 final class TCPInitHandler extends ChannelInboundHandlerAdapter {
 
-	private final Manager handler = Manager.instance();
+	private final Controller handler = Controller.instance();
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {

@@ -3,10 +3,9 @@ package com.cat.core.server.udp.session;
 import com.alibaba.fastjson.JSONObject;
 import com.cat.core.config.Config;
 import com.cat.core.kit.ValidateKit;
-import com.cat.core.server.dict.Action;
-import com.cat.core.server.dict.Key;
-import com.cat.core.server.dict.Result;
-import com.cat.core.server.tcp.message.UDPPusher;
+import com.cat.core.server.data.Action;
+import com.cat.core.server.data.Key;
+import com.cat.core.server.data.Result;
 import com.cat.core.server.udp.UDPServer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -97,7 +96,7 @@ public final class UDPManager {
 			JSONObject json = new JSONObject();
 			json.put(Key.ACTION.getName(), Action.UDP_SESSION_PUSH.getName());
 			json.put(Key.DATA.getName(), list.subList(i, Math.min(i + batch, list.size())));
-			UDPPusher.push(json.toString());
+//			UDPClient.push(json.toString());
 		}
 	}
 }

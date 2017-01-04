@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * 接收到的app请求信息
- * 保留app请求id以回复
+ * app request info
+ * save app channel id to response
  */
 @RequiredArgsConstructor(staticName = "of")
 @Getter
