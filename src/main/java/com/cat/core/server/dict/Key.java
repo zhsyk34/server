@@ -1,4 +1,4 @@
-package com.cat.core.server.data;
+package com.cat.core.server.dict;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,7 +30,7 @@ public enum Key {
 	/**
 	 * 推送
 	 */
-	DATA("data", "推送UDP数组数据信息");
+	DATA("dict", "推送UDP数组数据信息");
 
 	@NonNull
 	private final String name;

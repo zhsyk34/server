@@ -1,8 +1,11 @@
 package com.cat.core.server.tcp.session;
 
-import com.cat.core.server.data.Device;
+import com.cat.core.server.dict.Device;
+import com.cat.core.server.task.LoopTask;
 import io.netty.channel.Channel;
 import lombok.NonNull;
+
+import java.util.List;
 
 public interface SessionHandler {
 	/**
@@ -44,6 +47,6 @@ public interface SessionHandler {
 	/**
 	 * monitor register channel
 	 */
-	void monitor();
+	List<LoopTask> monitor();
 
 }

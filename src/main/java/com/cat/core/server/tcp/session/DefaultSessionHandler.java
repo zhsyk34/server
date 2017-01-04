@@ -2,19 +2,25 @@ package com.cat.core.server.tcp.session;
 
 import com.cat.core.config.Config;
 import com.cat.core.kit.ThreadKit;
+import com.cat.core.kit.ValidateKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
-import com.cat.core.server.data.Device;
+import com.cat.core.server.dict.Device;
+import com.cat.core.server.task.LoopTask;
 import com.cat.core.server.tcp.port.PortHandler;
 import com.cat.core.server.tcp.state.ChannelData;
 import com.cat.core.server.tcp.state.LoginInfo;
+import com.cat.core.server.udp.session.UDPHandler;
 import com.cat.core.server.udp.session.UDPInfo;
-import com.cat.core.server.udp.session.UDPManager;
 import com.cat.core.server.web.PushHandler;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +30,23 @@ public final class DefaultSessionHandler implements SessionHandler {
 	private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
 	private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
 	private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
+
+	static {
+//		ExecutorService service = Executors.newSingleThreadExecutor();
+//		service.submit(TCPServer::start);
+//		service.shutdown();
+//
+//		while (!TCPServer.isStarted()) {
+//			Log.logger(Factory.TCP_EVENT, TCPServer.class.getSimpleName() + " is starting...");
+//			ThreadKit.await(Config.SERVER_START_MONITOR_TIME);
+//		}
+	}
+
+	@NonNull
 	private final PortHandler portHandler;
+	@NonNull
+	private final UDPHandler udpHandler;
+	@NonNull
 	private final PushHandler pushHandler;
 
 	@Override
@@ -40,7 +62,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 			return true;
 		}
 
-		UDPInfo info = UDPManager.find(sn);
+		UDPInfo info = udpHandler.find(sn);
 		if (info == null) {
 			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]掉线(无udp心跳),无法唤醒");
 			return false;
@@ -54,15 +76,16 @@ public final class DefaultSessionHandler implements SessionHandler {
 		while (chance < 3 && !GATEWAY_MAP.containsKey(sn)) {
 			chance++;
 
-			UDPManager.awake(ip, port);
+			udpHandler.awake(new InetSocketAddress(ip, port));
 			ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
+
 			if (GATEWAY_MAP.containsKey(sn)) {
 				return true;
 			}
 
 			int allocated = portHandler.port(ip, sn);//服务器分配端口
 			if (allocated != port) {
-				UDPManager.awake(ip, allocated);
+				udpHandler.awake(new InetSocketAddress(ip, allocated));
 				ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
 			}
 		}
@@ -212,11 +235,43 @@ public final class DefaultSessionHandler implements SessionHandler {
 	}
 
 	@Override
-	public void monitor() {
-		//TODO
-		System.err.println("accept count:[" + ACCEPT_MAP.size() + "]");
-		System.err.println("gateway count:[" + GATEWAY_MAP.size() + "]");
-		System.err.println("app count:[" + APP_MAP.size() + "]");
+	public List<LoopTask> monitor() {
+		Log.logger(Factory.TCP_EVENT, "未登录连接数:[" + ACCEPT_MAP.size() + "]");
+		LoopTask acceptTask = () -> ACCEPT_MAP.forEach((id, channel) -> {
+			if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT)) {
+				Log.logger(Factory.TCP_EVENT, "超时未登录,移除");
+				if (ACCEPT_MAP.remove(id, channel)) {
+					channel.close();
+				}
+			}
+		});
+//		TaskHandler.register(acceptTask);
+//		TaskHandler.register(TimerTask.of(acceptTask::execute, 1, f, TimeUnit.SECONDS));
+
+		Log.logger(Factory.TCP_EVENT, "TCP APP在线:[" + APP_MAP.size() + "]");
+		LoopTask appTask = () -> APP_MAP.forEach((id, channel) -> {
+			if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
+				Log.logger(Factory.TCP_EVENT, "APP在线时长已到,移除!");
+				if (APP_MAP.remove(id, channel)) {
+					channel.close();
+				}
+			}
+		});
+//		TaskHandler.register(appTask);
+//		TaskHandler.register(TimerTask.of(appTask::execute, 1, f, TimeUnit.SECONDS));
+
+		Log.logger(Factory.TCP_EVENT, "TCP网关在线:[" + GATEWAY_MAP.size() + "]");
+		LoopTask gatewayTask = () -> GATEWAY_MAP.forEach((id, channel) -> {
+			if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
+				Log.logger(Factory.TCP_EVENT, "APP在线时长已到,移除!");
+				if (GATEWAY_MAP.remove(id, channel)) {
+					channel.close();
+				}
+			}
+		});
+//		TaskHandler.register(gatewayTask);
+//		TaskHandler.register(TimerTask.of(gatewayTask::execute, 1, f, TimeUnit.SECONDS));
+		return Collections.unmodifiableList(Arrays.asList(acceptTask, appTask, gatewayTask));
 	}
 
 }

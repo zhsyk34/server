@@ -1,8 +1,8 @@
 package com.cat.core.server.tcp.state;
 
 import com.cat.core.config.Config;
-import com.cat.core.server.data.Device;
-import com.cat.core.server.data.State;
+import com.cat.core.server.dict.Device;
+import com.cat.core.server.dict.State;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import lombok.NonNull;
@@ -18,7 +18,7 @@ public final class ChannelData {
 	private static final AttributeKey<Verifier> VERIFIER = AttributeKey.newInstance(Verifier.class.getSimpleName());
 	private static final AttributeKey<State> STATE = AttributeKey.newInstance(State.class.getSimpleName());
 
-	/*---------------------------------------base data by channel self---------------------------------------*/
+	/*---------------------------------------base dict by channel self---------------------------------------*/
 
 	public static String id(@NonNull Channel channel) {
 		return channel.id().asShortText();
@@ -32,7 +32,7 @@ public final class ChannelData {
 		return ((InetSocketAddress) channel.remoteAddress()).getPort();
 	}
 
-	/*---------------------------------------cache data for login---------------------------------------*/
+	/*---------------------------------------cache dict for login---------------------------------------*/
 
 	/**
 	 * info
@@ -63,7 +63,7 @@ public final class ChannelData {
 		return channel.attr(STATE).get();
 	}
 
-	public static void state(@NonNull Channel channel, @NonNull State state) {
+	static void state(@NonNull Channel channel, @NonNull State state) {
 		channel.attr(STATE).set(state);
 	}
 
@@ -85,7 +85,7 @@ public final class ChannelData {
 	}
 
 	/**
-	 * check each state data
+	 * check each state dict
 	 */
 	private static boolean check(@NonNull Channel channel, State state) {
 		if (state == null || state == State.CLOSED) {

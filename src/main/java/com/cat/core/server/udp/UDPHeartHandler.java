@@ -2,13 +2,12 @@ package com.cat.core.server.udp;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.cat.core.kit.RandomKit;
 import com.cat.core.kit.ValidateKit;
-import com.cat.core.server.data.Action;
-import com.cat.core.server.data.Key;
-import com.cat.core.server.data.Result;
+import com.cat.core.server.Controller;
+import com.cat.core.server.dict.Action;
+import com.cat.core.server.dict.Key;
+import com.cat.core.server.dict.Result;
 import com.cat.core.server.udp.session.UDPInfo;
-import com.cat.core.server.udp.session.UDPManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
@@ -17,7 +16,9 @@ import io.netty.util.CharsetUtil;
 /**
  * handler for receive the udp heart beat
  */
-final class UDPHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+final class UDPHeartHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+
+	private final Controller controller = Controller.instance();
 
 	private UDPInfo validate(DatagramPacket msg) {
 		String command = msg.content().toString(CharsetUtil.UTF_8);
@@ -45,15 +46,8 @@ final class UDPHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 	protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
 		UDPInfo info = validate(msg);
 		if (info != null) {
-			UDPManager.receive(info);
-			UDPManager.response(msg.sender());
-
-			//模拟登录唤醒 测试用
-			if (RandomKit.randomInteger(1, 10) > 5) {
-				String sn = info.getSn();
-				System.err.println("awaken sn:" + sn);
-				UDPManager.awake(msg.sender());
-			}
+			controller.receive(info);
+			controller.response(msg.sender());
 		}
 	}
 

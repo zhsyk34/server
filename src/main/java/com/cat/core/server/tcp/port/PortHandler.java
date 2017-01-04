@@ -1,5 +1,7 @@
 package com.cat.core.server.tcp.port;
 
+import com.cat.core.server.task.TimerTask;
+
 public interface PortHandler {
 
 	/**
@@ -14,8 +16,8 @@ public interface PortHandler {
 	int allocate(String sn, String ip, int apply);
 
 	/**
-	 * when ip change port2 will allocated again
-	 * release history data
+	 * when ip change port will allocated again
+	 * release history dict
 	 */
-	void recycle();
+	TimerTask recycle();
 }

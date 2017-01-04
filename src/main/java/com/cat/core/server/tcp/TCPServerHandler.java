@@ -4,9 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.cat.core.kit.JsonKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
-import com.cat.core.server.data.Action;
-import com.cat.core.server.data.Key;
-import com.cat.core.server.data.Result;
+import com.cat.core.server.Controller;
+import com.cat.core.server.dict.Action;
+import com.cat.core.server.dict.Key;
+import com.cat.core.server.dict.Result;
 import com.cat.core.server.tcp.message.AppRequest;
 import com.cat.core.server.tcp.message.DefaultMessageHandler;
 import com.cat.core.server.tcp.state.ChannelData;
@@ -25,7 +26,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 
-	private final Controller handler = Controller.instance();
+	private final Controller controller = Controller.instance();
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -46,7 +47,7 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 			case APP:
 				if (action != null) {
 					Log.logger(Factory.TCP_RECEIVE, "客户端请求[" + command + "],将其添加到消息处理队列...");
-					handler.receive(sn, AppRequest.of(ChannelData.id(channel), command));
+					controller.receive(sn, AppRequest.of(ChannelData.id(channel), command));
 				}
 				return;
 			case GATEWAY:
@@ -64,7 +65,7 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 					Log.logger(Factory.TCP_RECEIVE, "网关[" + sn + "]推送数据...");
 					//append sn
 					json.put(Key.SN.getName(), sn);
-					handler.push(json.toString());
+					controller.push(json);
 					return;
 				}
 
@@ -77,7 +78,7 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 				//4.响应请求
 				if (result != null) {
 					Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]回复app请求,转发...");
-					handler.response(sn, command);
+					controller.response(sn, command);
 				}
 				break;
 			default:

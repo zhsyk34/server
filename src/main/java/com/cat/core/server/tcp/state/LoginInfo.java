@@ -1,8 +1,8 @@
 package com.cat.core.server.tcp.state;
 
 import com.alibaba.fastjson.JSONObject;
-import com.cat.core.server.data.Device;
-import com.cat.core.server.data.Key;
+import com.cat.core.server.dict.Device;
+import com.cat.core.server.dict.Key;
 import lombok.*;
 import lombok.experimental.Accessors;
 

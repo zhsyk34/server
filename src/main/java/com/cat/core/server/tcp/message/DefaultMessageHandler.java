@@ -5,10 +5,11 @@ import com.cat.core.config.Config;
 import com.cat.core.kit.ValidateKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
-import com.cat.core.server.data.Device;
-import com.cat.core.server.data.ErrNo;
-import com.cat.core.server.data.Key;
-import com.cat.core.server.data.Result;
+import com.cat.core.server.dict.Device;
+import com.cat.core.server.dict.ErrNo;
+import com.cat.core.server.dict.Key;
+import com.cat.core.server.dict.Result;
+import com.cat.core.server.task.LoopTask;
 import com.cat.core.server.tcp.session.SessionHandler;
 import com.cat.core.server.web.PushHandler;
 import io.netty.channel.Channel;
@@ -26,7 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class DefaultMessageHandler implements MessageHandler {
 
 	private static final Map<String, AppRequestQueue> APP_REQUESTS_MAP = new ConcurrentHashMap<>();
+	@NonNull
 	private final PushHandler pushHandler;
+	@NonNull
 	private final SessionHandler sessionHandler;
 
 	@Override
@@ -49,8 +52,8 @@ public final class DefaultMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void process() {
-		APP_REQUESTS_MAP.forEach((sn, queue) -> {
+	public LoopTask process() {
+		return () -> APP_REQUESTS_MAP.forEach((sn, queue) -> {
 			AppRequest request = queue.peek();
 			if (request != null) {
 				this.forward(sn, request.getMessage());
@@ -72,22 +75,23 @@ public final class DefaultMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void monitor() {
-		AtomicInteger count = new AtomicInteger();
-		APP_REQUESTS_MAP.forEach((sn, queue) -> count.addAndGet(queue.getQueue().size()));
-		System.err.println("共有条[" + count.get() + "]信息待处理");
+	public LoopTask monitor() {
+		return () -> {
+			AtomicInteger count = new AtomicInteger();
+			APP_REQUESTS_MAP.forEach((sn, queue) -> count.addAndGet(queue.getQueue().size()));
+			System.err.println("共有条[" + count.get() + "]信息待处理");
 
-		//TODO
-		APP_REQUESTS_MAP.forEach((sn, queue) -> {
-			if (queue.isSend() && !ValidateKit.time(queue.getTime(), Config.TCP_MESSAGE_HANDLE_TIMEOUT)) {
-				sessionHandler.close(sn, Device.GATEWAY);
-				Queue<AppRequest> history = queue.clear();
-				if (history != null) {
-					Log.logger(Factory.TCP_ERROR, "网关[" + sn + "]响应超时,关闭连接并移除当前所有请求,共[" + history.size() + "]条");
-					feedback(history);
+			APP_REQUESTS_MAP.forEach((sn, queue) -> {
+				if (queue.isSend() && !ValidateKit.time(queue.getTime(), Config.TCP_MESSAGE_HANDLE_TIMEOUT)) {
+					sessionHandler.close(sn, Device.GATEWAY);
+					Queue<AppRequest> history = queue.clear();
+					if (history != null) {
+						Log.logger(Factory.TCP_ERROR, "网关[" + sn + "]响应超时,关闭连接并移除当前所有请求,共[" + history.size() + "]条");
+						feedback(history);
+					}
 				}
-			}
-		});
+			});
+		};
 	}
 
 	/**
@@ -124,9 +128,7 @@ public final class DefaultMessageHandler implements MessageHandler {
 	}
 
 	/**
-	 * feedback app client when gateway process timeout
-	 *
-	 * @param queue 需要回馈的消息队列
+	 * feedback app client when gateway process timeout in the thread async
 	 */
 	private void feedback(Queue<AppRequest> queue) {
 		ExecutorService service = Executors.newSingleThreadExecutor();

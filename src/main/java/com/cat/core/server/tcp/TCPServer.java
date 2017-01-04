@@ -1,6 +1,8 @@
 package com.cat.core.server.tcp;
 
 import com.cat.core.config.Config;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -58,6 +60,8 @@ public final class TCPServer {
 
 			started = true;
 			lock.unlock();
+
+			Log.logger(Factory.TCP_EVENT, TCPServer.class.getSimpleName() + " start success at port[" + Config.TCP_SERVER_PORT + "]");
 
 			future.channel().closeFuture().sync();
 		} catch (InterruptedException e) {

@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public final class Verifier {
+final class Verifier {
 	private final String question;
 	private final String answer;
 

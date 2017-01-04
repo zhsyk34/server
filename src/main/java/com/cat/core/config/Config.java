@@ -58,7 +58,7 @@ public final class Config {
 	//服务器启动完毕后执行扫描任务
 	public static final int SCHEDULE_TASK_DELAY_TIME = 1;
 	//	//服务器启动状态监视时间间隔
-	public static final int SERVER_START_MONITOR_TIME = 1;//ms
+	public static final int SERVER_START_MONITOR_TIME = 1500;//ms
 	//通过UDP唤醒网关时检测状态时间间隔
 	public static final int GATEWAY_AWAKE_CHECK_TIME = 100;//ms
 	//

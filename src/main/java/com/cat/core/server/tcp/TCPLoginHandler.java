@@ -2,9 +2,10 @@ package com.cat.core.server.tcp;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.cat.core.server.data.Action;
-import com.cat.core.server.data.Key;
-import com.cat.core.server.data.Result;
+import com.cat.core.server.Controller;
+import com.cat.core.server.dict.Action;
+import com.cat.core.server.dict.Key;
+import com.cat.core.server.dict.Result;
 import com.cat.core.server.tcp.state.LoginInfo;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,7 +13,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 final class TCPLoginHandler extends ChannelInboundHandlerAdapter {
 
-	private final Controller handler = Controller.instance();
+	private final Controller controller = Controller.instance();
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -29,7 +30,7 @@ final class TCPLoginHandler extends ChannelInboundHandlerAdapter {
 		Action action = Action.from(json.getString(Key.ACTION.getName()));
 
 		if (action == Action.LOGIN_REQUEST) {
-			handler.request(channel, LoginInfo.from(json));
+			controller.request(channel, LoginInfo.from(json));
 			return;
 		}
 
@@ -37,15 +38,15 @@ final class TCPLoginHandler extends ChannelInboundHandlerAdapter {
 		Result result = Result.from(json.getString(Key.RESULT.getName()));
 		String keyCode = json.getString(Key.KEYCODE.getName());
 		if (result == Result.OK && keyCode != null) {
-			handler.verify(channel, keyCode);
+			controller.verify(channel, keyCode);
 			return;
 		}
 
 		//3.filter un-session client
-		if (handler.finished(channel)) {
+		if (controller.finished(channel)) {
 			ctx.fireChannelRead(command);
 		} else {
-			handler.close(channel);
+			controller.close(channel);
 		}
 	}
 

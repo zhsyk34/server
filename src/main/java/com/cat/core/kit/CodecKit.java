@@ -87,7 +87,7 @@ public class CodecKit {
 	 */
 	private static int verify(byte[] data) {
 		if (data == null || data.length == 0) {
-			throw new RuntimeException("data is isEmpty.");
+			throw new RuntimeException("dict is isEmpty.");
 		}
 		int value = data.length + 4;//TODO
 		for (byte b : data) {
@@ -122,7 +122,7 @@ public class CodecKit {
 		buffer.writeBytes(new byte[]{HEADERS.get(0), HEADERS.get(1)});
 		//length:2
 		buffer.writeBytes(encodeLength(data));
-		//data
+		//dict
 		buffer.writeBytes(data);
 		//verifyKey:2
 		buffer.writeBytes(encodeVerify(data));

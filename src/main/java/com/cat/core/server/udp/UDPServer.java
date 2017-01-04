@@ -1,6 +1,8 @@
 package com.cat.core.server.udp;
 
 import com.cat.core.config.Config;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -24,7 +26,7 @@ public final class UDPServer {
 	@Getter
 	private static Channel channel;
 
-	public static synchronized void start() {
+	public static void start() {
 		lock.lock();
 		if (channel != null) {
 			return;
@@ -38,13 +40,14 @@ public final class UDPServer {
 			bootstrap.handler(new ChannelInitializer<DatagramChannel>() {
 				@Override
 				protected void initChannel(DatagramChannel ch) throws Exception {
-					ch.pipeline().addLast(new UDPCoder(), new UDPHandler());
+					ch.pipeline().addLast(new UDPCoder(), new UDPHeartHandler());
 				}
 			});
 
 			channel = bootstrap.bind(Config.UDP_SERVER_PORT).syncUninterruptibly().channel();
 
 			lock.unlock();
+			Log.logger(Factory.UDP_EVENT, UDPServer.class.getSimpleName() + " start success at port[" + Config.UDP_SERVER_PORT + "]");
 
 			channel.closeFuture().await();
 		} catch (Exception e) {

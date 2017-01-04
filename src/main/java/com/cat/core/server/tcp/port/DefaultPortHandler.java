@@ -1,50 +1,82 @@
 package com.cat.core.server.tcp.port;
 
 import com.cat.core.config.Config;
+import com.cat.core.db.PortDao;
+import com.cat.core.db.UDPRecord;
 import com.cat.core.kit.AllocateKit;
+import com.cat.core.kit.ThreadKit;
+import com.cat.core.kit.ValidateKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
+import com.cat.core.server.task.TimerTask;
 import io.netty.handler.logging.LogLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(staticName = "instance")
 public final class DefaultPortHandler implements PortHandler {
 
+	/**
+	 * <ip, Map<sn, Record>>
+	 */
 	private static final Map<String, Map<String, Record>> PORT_MAP = new ConcurrentHashMap<>();
 
 	static {
-		init();
+		for (int i = 0; i < 4; i++) {
+			ThreadKit.await(300);
+			System.out.println("----------load port data................");
+		}
+		System.out.println("----------load port data success.");
+//		init();
 	}
 
 	/**
 	 * load from database
 	 */
 	private static void init() {
-//		Log.logger(Factory.TCP_EVENT, "正从数据库加载网关UDP端口信息...");
-//
-//		List<UDPRecord> list;
-//		int cursor = 0;
-//		while (true) {
-//			list = PortDao.find(cursor, Config.BATCH_FETCH_SIZE);
-//			if (ValidateKit.isEmpty(list)) {
-//				break;
-//			}
-//			list.forEach(UDPPortManager::register);
-//			cursor += Config.BATCH_FETCH_SIZE;
-//		}
-//
-//		StringBuilder builder = new StringBuilder();
-//		builder.register("加载完毕:\n");
-//		builder.register("----------------------------------\n");
-//		PORT_MAP.forEach((ip, map) -> builder.register("ip[").register(ip).register("]下有[").register(map.size()).register("]个端口正被使用\n"));
-//		builder.register("----------------------------------\n");
-//		Log.logger(Factory.TCP_EVENT, builder.toString());
+		Log.logger(Factory.TCP_EVENT, "正从数据库加载网关UDP端口信息...");
+
+		List<UDPRecord> list;
+		int cursor = 0;
+		while (true) {
+			list = PortDao.find(cursor, Config.BATCH_FETCH_SIZE);
+			if (ValidateKit.isEmpty(list)) {
+				break;
+			}
+			list.forEach(DefaultPortHandler::register);
+			cursor += Config.BATCH_FETCH_SIZE;
+		}
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("加载完毕:\n");
+		builder.append("----------------------------------\n");
+		PORT_MAP.forEach((ip, map) -> builder.append("ip[").append(ip).append("]下有[").append(map.size()).append("]个端口正被使用\n"));
+		builder.append("----------------------------------\n");
+		Log.logger(Factory.TCP_EVENT, builder.toString());
+	}
+
+	/**
+	 * if only used call once at init method synchronized is not necessary
+	 */
+	private static void register(@NonNull UDPRecord record) {
+		final Map<String, Record> map;
+		final String ip = record.getIp();
+		synchronized (PORT_MAP) {
+			if (PORT_MAP.containsKey(ip)) {
+				map = PORT_MAP.get(ip);
+			} else {
+				map = new ConcurrentHashMap<>();
+				PORT_MAP.put(ip, map);
+			}
+		}
+		map.put(record.getSn(), Record.of(record.getPort(), record.getHappen()));
 	}
 
 	@Override
@@ -112,46 +144,50 @@ public final class DefaultPortHandler implements PortHandler {
 	}
 
 	@Override
-	public void recycle() {
-		//重新分组:转为(sn,(ip,record))
-		final Map<String, Map<String, Record>> snMap = new HashMap<>();
+	public TimerTask recycle() {
+		Runnable task = () -> {
+			//重新分组:转为(sn,(ip,record))
+			final Map<String, Map<String, Record>> snMap = new HashMap<>();
 
-		PORT_MAP.forEach((ip, map) -> map.forEach((sn, record) -> {
-			final Map<String, Record> ipMap;
-			if (snMap.containsKey(sn)) {
-				ipMap = snMap.get(sn);
-			} else {
-				ipMap = new HashMap<>();
-				snMap.put(sn, ipMap);
-			}
+			PORT_MAP.forEach((ip, map) -> map.forEach((sn, record) -> {
+				final Map<String, Record> ipMap;
+				if (snMap.containsKey(sn)) {
+					ipMap = snMap.get(sn);
+				} else {
+					ipMap = new HashMap<>();
+					snMap.put(sn, ipMap);
+				}
 
-			ipMap.put(ip, record);
-		}));
+				ipMap.put(ip, record);
+			}));
 
-		snMap.forEach((sn, map) -> {
-			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]占用的端口号数为" + map.size());
-			if (map.size() < 2) {
-				Log.logger(Factory.TCP_EVENT, "占用端口号数 < 2,无需清理");
-				return;
-			}
-			//对需要移除的数据按照端口分配时间进行排序
-			LinkedHashMap<String, Record> linkMap = map.entrySet().stream().sorted((o1, o2) -> o2.getValue().happen - o1.getValue().happen > 0 ? 1 : -1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+			snMap.forEach((sn, map) -> {
+				Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]占用的端口号数为" + map.size());
+				if (map.size() < 2) {
+					Log.logger(Factory.TCP_EVENT, "占用端口号数 < 2,无需清理");
+					return;
+				}
+				//对需要移除的数据按照端口分配时间进行排序
+				LinkedHashMap<String, Record> linkMap = map.entrySet().stream().sorted((o1, o2) -> o2.getValue().happen - o1.getValue().happen > 0 ? 1 : -1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
-			Record last = linkMap.entrySet().iterator().next().getValue();
-			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]最后使用的端口信息:[" + last + "]");
+				Record last = linkMap.entrySet().iterator().next().getValue();
+				Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]最后使用的端口信息:[" + last + "]");
 //			linkMap.forEach((ip, record) -> System.out.println(ip + ":" + record));
 
-			//开始移除(移除时与首元素再次进行比较,防止误删,避免加锁)
-			linkMap.forEach((ip, record) -> {
-				Map<String, Record> presentSnMap = PORT_MAP.get(ip);
-				if (presentSnMap != null) {
-					Record udpPortRecord = presentSnMap.get(sn);
-					if (udpPortRecord != null && udpPortRecord.happen < last.happen) {
-						presentSnMap.remove(sn, udpPortRecord);
+				//开始移除(移除时与首元素再次进行比较,防止误删,避免加锁)
+				linkMap.forEach((ip, record) -> {
+					Map<String, Record> presentSnMap = PORT_MAP.get(ip);
+					if (presentSnMap != null) {
+						Record udpPortRecord = presentSnMap.get(sn);
+						if (udpPortRecord != null && udpPortRecord.happen < last.happen) {
+							presentSnMap.remove(sn, udpPortRecord);
+						}
 					}
-				}
+				});
 			});
-		});
+		};
+
+		return TimerTask.of(task, 6, 6, TimeUnit.HOURS);
 	}
 
 	@AllArgsConstructor(access = AccessLevel.PRIVATE, staticName = "of")

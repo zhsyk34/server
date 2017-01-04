@@ -1,4 +1,4 @@
-package com.cat.core.server.data;
+package com.cat.core.server.dict;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

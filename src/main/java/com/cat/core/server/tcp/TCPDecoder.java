@@ -67,7 +67,7 @@ final class TCPDecoder extends ByteToMessageDecoder {
 			return;
 		}
 
-		//skip data and verify code to check footer again
+		//skip dict and verify code to check footer again
 		in.markReaderIndex();
 		in.skipBytes(actual + Packet.VERIFY_BYTES);
 
@@ -77,7 +77,7 @@ final class TCPDecoder extends ByteToMessageDecoder {
 			return;
 		}
 
-		//read data
+		//read dict
 		in.resetReaderIndex();
 
 		byte[] data = new byte[actual];

@@ -1,5 +1,6 @@
 package com.cat.core.server.tcp.message;
 
+import com.cat.core.server.task.LoopTask;
 import lombok.NonNull;
 
 public interface MessageHandler {
@@ -11,14 +12,13 @@ public interface MessageHandler {
 	 */
 	boolean push(@NonNull String msg);
 
-	void process();
+	LoopTask process();
 
 	boolean response(@NonNull String sn, @NonNull String msg);
 
 	/**
-	 * TODO:TEST
 	 * monitor the process situation
 	 */
-	void monitor();
+	LoopTask monitor();
 
 }

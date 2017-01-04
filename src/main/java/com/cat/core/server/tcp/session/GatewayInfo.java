@@ -2,9 +2,9 @@ package com.cat.core.server.tcp.session;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.cat.core.server.data.Action;
-import com.cat.core.server.data.Device;
-import com.cat.core.server.data.Key;
+import com.cat.core.server.dict.Action;
+import com.cat.core.server.dict.Device;
+import com.cat.core.server.dict.Key;
 import com.cat.core.server.tcp.state.ChannelData;
 import com.cat.core.server.tcp.state.LoginInfo;
 import io.netty.channel.Channel;

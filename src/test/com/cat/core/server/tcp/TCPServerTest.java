@@ -1,18 +1,24 @@
 package com.cat.core.server.tcp;
 
 import com.cat.core.kit.ThreadKit;
+import com.cat.core.server.Controller;
+import com.cat.core.server.udp.UDPServer;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class TCPServerTest {
 
-	private static final Controller manager = Controller.instance();
+	private static final Controller controller = Controller.instance();
 
 	public static void main(String[] args) {
 
-		ScheduledExecutorService service = Executors.newScheduledThreadPool(4);
+		ExecutorService service = Executors.newCachedThreadPool();
+		service.submit(UDPServer::start);
+		while (UDPServer.getChannel() == null) {
+			System.out.println("udp server start...");
+			ThreadKit.await(1000);
+		}
 
 		service.submit(TCPServer::start);
 		while (!TCPServer.isStarted()) {
@@ -20,19 +26,9 @@ public class TCPServerTest {
 			ThreadKit.await(1000);
 		}
 
-//		service.submit(UDPServer::start);
-//		while (UDPServer.getChannel() == null) {
-//			System.out.println("udp server start...");
-//			ThreadKit.await(1000);
-//		}
+		service.shutdown();
 
-		service.submit(() -> {
-			while (true) {
-				manager.process();
-			}
-		});
-//
-//
-		service.scheduleAtFixedRate(() -> Controller.instance().monitor(), 1, 5, TimeUnit.SECONDS);
+		controller.task();
+
 	}
 }

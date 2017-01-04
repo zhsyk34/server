@@ -1,6 +1,6 @@
 package com.cat.core.server.tcp.state;
 
-import com.cat.core.server.data.State;
+import com.cat.core.server.dict.State;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 

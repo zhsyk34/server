@@ -17,16 +17,16 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * UDP客户端(发送器),推送信息到web服务器
+ * udp client:push data to web service
  */
-public final class UDPClient {
+final class UDPClient {
 
 	private static final Lock lock = new ReentrantLock();
 
 	@Getter
 	private static Channel channel;
 
-	public static synchronized void start() {
+	static void start() {
 		lock.lock();
 		if (channel != null) {
 			return;
