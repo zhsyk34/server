@@ -5,19 +5,19 @@ import com.cat.core.server.task.TimerTask;
 public interface PortHandler {
 
 	/**
-	 * get the port2 for sn int the ip
+	 * get the port for sn int the ip
 	 */
 	int port(String ip, String sn);
 
 	/**
-	 * allocate the port2 for ip and sn
+	 * allocate the port for ip and sn
 	 * if apply is allowable use it direct
 	 */
 	int allocate(String sn, String ip, int apply);
 
 	/**
 	 * when ip change port will allocated again
-	 * release history dict
+	 * release history data
 	 */
 	TimerTask recycle();
 }

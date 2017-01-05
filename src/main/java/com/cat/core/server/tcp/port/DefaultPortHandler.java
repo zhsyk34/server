@@ -31,9 +31,9 @@ public final class DefaultPortHandler implements PortHandler {
 	static {
 		for (int i = 0; i < 4; i++) {
 			ThreadKit.await(300);
-			System.out.println("----------load port data................");
+			Log.logger(Factory.UDP_EVENT, "----------load port data................");
 		}
-		System.out.println("----------load port data success.");
+		Log.logger(Factory.UDP_EVENT, "----------load port data success.");
 //		init();
 	}
 
@@ -172,7 +172,6 @@ public final class DefaultPortHandler implements PortHandler {
 
 				Record last = linkMap.entrySet().iterator().next().getValue();
 				Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]最后使用的端口信息:[" + last + "]");
-//			linkMap.forEach((ip, record) -> System.out.println(ip + ":" + record));
 
 				//开始移除(移除时与首元素再次进行比较,防止误删,避免加锁)
 				linkMap.forEach((ip, record) -> {

@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * app request info
- * save app channel id to response
+ * app request info:save app channel id to response
  */
 @RequiredArgsConstructor(staticName = "of")
 @Getter

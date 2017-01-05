@@ -32,7 +32,7 @@ public final class ChannelData {
 		return ((InetSocketAddress) channel.remoteAddress()).getPort();
 	}
 
-	/*---------------------------------------cache dict for login---------------------------------------*/
+	/*---------------------------------------cache data for login---------------------------------------*/
 
 	/**
 	 * info

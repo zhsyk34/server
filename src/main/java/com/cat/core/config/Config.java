@@ -6,10 +6,6 @@ package com.cat.core.config;
  */
 public final class Config {
 
-	public static final String SERVER_START_TIME = "2016-12-01";
-	/**
-	 * -----------------------------TCP配置-----------------------------
-	 */
 	//TCP服务器默认端口
 	public static final int TCP_SERVER_PORT = 15999;
 	//TCP服务器最大并发连接数
@@ -22,13 +18,11 @@ public final class Config {
 	//TCP登录时间
 	public static final int TCP_LOGIN_TIMEOUT = 5;
 	//app单次与服务器建立连接的最大时长
-	public static final int TCP_APP_TIMEOUT = 17;
+	public static final int TCP_APP_TIMEOUT = 99999;//17
 	//网关单次与服务器建立连接的最大时长
 	public static final int TCP_GATEWAY_TIMEOUT = 30 * 60;
 	//APP请求的最长处理时间(从开始处理时计时)
 	public static final int TCP_MESSAGE_HANDLE_TIMEOUT = 18;
-	//TCP管理(扫描)线程执行频率
-	public static final int TCP_TIMEOUT_SCAN_FREQUENCY = 10;
 	//TCP允许的最大的无效缓冲数据
 	public static final int TCP_BUFFER_SIZE = 1 << 10;
 	//TCP为网关分配的最小UDP端口
@@ -66,18 +60,21 @@ public final class Config {
 //	 * -----------------------------DB配置-----------------------------
 //	 */
 	public static final int BATCH_FETCH_SIZE = 10;
+	public static final int UDP_SESSION_PUSH_BATCH = 10;
 	private static final String LOCAL_HOST = "127.0.0.1";
 	/**
 	 * -----------------------------TCP配置-----------------------------
 	 */
 	//TCP服务器地址
 	public static final String TCP_SERVER_HOST = LOCAL_HOST;
+	/**
+	 * -----------------------------TCP配置-----------------------------
+	 */
+
 	//本地服务器地址:TODO
 	public static final String UDP_WEB_IP = LOCAL_HOST;
 	//网关发送UDP心跳包频率
 	private static final int UDP_HEART_FREQUENCY = 10;
-	//UDP信息过期时间
-	public static final int UDP_HEART_DUE = UDP_HEART_FREQUENCY * 6;
 //	/**
 //	 * -----------------------------web-udp信息-----------------------------
 //	 */
@@ -86,5 +83,7 @@ public final class Config {
 //
 //	//网关UDP心跳最长离线时间
 //	public static final int UDP_MAX_IDLE = UDP_CLIENT_FREQUENCY * 10;
+//UDP信息过期时间
+public static final int UDP_HEART_DUE = UDP_HEART_FREQUENCY * 6;
 
 }

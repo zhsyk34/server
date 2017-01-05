@@ -45,7 +45,7 @@
         <appender-ref ref="STDOUT"/>
     </logger>-->
 
-    <root level="warn">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

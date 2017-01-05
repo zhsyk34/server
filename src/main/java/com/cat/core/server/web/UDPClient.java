@@ -24,10 +24,11 @@ final class UDPClient {
 	private static final Lock lock = new ReentrantLock();
 
 	@Getter
-	private static Channel channel;
+	private static volatile Channel channel;
 
 	static void start() {
 		lock.lock();
+
 		if (channel != null) {
 			return;
 		}
@@ -47,7 +48,8 @@ final class UDPClient {
 
 			lock.unlock();
 
-			Log.logger(Factory.UDP_EVENT, UDPClient.class.getSimpleName() + " 在端口[" + Config.UDP_PUSHER_PORT + "]启动完毕");
+			Log.logger(Factory.UDP_EVENT, UDPClient.class.getSimpleName() + " start success at port [" + Config.UDP_PUSHER_PORT + "]");
+
 			channel.closeFuture().await();
 		} catch (Exception e) {
 			lock.unlock();

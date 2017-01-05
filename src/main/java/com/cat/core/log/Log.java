@@ -111,7 +111,6 @@ public class Log {
 	 */
 	@Getter
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
-//	@RequiredArgsConstructor(access = AccessLevel.PACKAGE, staticName = "of")
 	private static class Content {
 		@NonNull
 		private final Logger logger;

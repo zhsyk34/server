@@ -17,18 +17,17 @@ public class TCPServerTest {
 		service.submit(UDPServer::start);
 		while (UDPServer.getChannel() == null) {
 			System.out.println("udp server start...");
-			ThreadKit.await(1000);
+			ThreadKit.await(500);
 		}
 
 		service.submit(TCPServer::start);
 		while (!TCPServer.isStarted()) {
 			System.out.println("tcp server start...");
-			ThreadKit.await(1000);
+			ThreadKit.await(500);
 		}
 
 		service.shutdown();
 
 		controller.task();
-
 	}
 }

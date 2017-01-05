@@ -4,9 +4,12 @@ import com.cat.core.config.Config;
 import com.cat.core.dict.Packet;
 import com.cat.core.kit.ByteKit;
 import com.cat.core.kit.DESKit;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.logging.LogLevel;
 import io.netty.util.CharsetUtil;
 
 import java.util.List;
@@ -32,11 +35,11 @@ final class TCPDecoder extends ByteToMessageDecoder {
 
 		//length
 		if (size < Packet.MSG_MIN_LENGTH) {
-//			Log.logger(Factory.TCP_RECEIVE, "等待数据中...数据至少应有[" + Packet.MSG_MIN_LENGTH + "]位");
+			Log.logger(Factory.TCP_RECEIVE, "等待数据中...数据至少应有[" + Packet.MSG_MIN_LENGTH + "]位");
 			return;
 		}
 		if (size > Config.TCP_BUFFER_SIZE) {
-//			Log.logger(Factory.TCP_RECEIVE, "缓冲数据已达[" + size + "]位,超过最大限制[" + Config.TCP_BUFFER_SIZE + "],丢弃本次数据");
+			Log.logger(Factory.TCP_RECEIVE, "缓冲数据已达[" + size + "]位,超过最大限制[" + Config.TCP_BUFFER_SIZE + "],丢弃本次数据");
 			in.clear();
 			return;
 		}
@@ -46,24 +49,24 @@ final class TCPDecoder extends ByteToMessageDecoder {
 		//header
 		if (in.readByte() != Packet.HEADERS.get(0) || in.readByte() != Packet.HEADERS.get(1)) {
 			in.clear();
-//			Log.logger(Factory.TCP_RECEIVE, "包头数据错误,丢弃本次数据");
+			Log.logger(Factory.TCP_RECEIVE, "包头数据错误,丢弃本次数据");
 			return;
 		}
 
 		//direct to check footer
 		if (in.getByte(size - 2) != Packet.FOOTERS.get(0) || in.getByte(size - 1) != Packet.FOOTERS.get(1)) {
 			in.resetReaderIndex();
-//			Log.logger(Factory.TCP_RECEIVE, "包尾数据错误,尝试继续等待...");
+			Log.logger(Factory.TCP_RECEIVE, "包尾数据错误,尝试继续等待...");
 			return;
 		}
 
 		//length
 		int length = ByteKit.byteArrayToInt(new byte[]{in.readByte(), in.readByte()});
 		int actual = length - Packet.LENGTH_BYTES - Packet.VERIFY_BYTES;
-//		Log.logger(Factory.TCP_RECEIVE, LogLevel.TRACE, "校验长度:[" + length + "], 指令长度应为:[" + actual + "]");
+		Log.logger(Factory.TCP_RECEIVE, LogLevel.TRACE, "校验长度:[" + length + "], 指令长度应为:[" + actual + "]");
 		if (actual < Packet.MIN_DATA_BYTES || actual > size - Packet.REDUNDANT_BYTES) {
 			in.clear();
-//			Log.logger(Factory.TCP_RECEIVE, "[长度校验数据]校验错误,丢弃本次数据");
+			Log.logger(Factory.TCP_RECEIVE, "[长度校验数据]校验错误,丢弃本次数据");
 			return;
 		}
 
@@ -73,7 +76,7 @@ final class TCPDecoder extends ByteToMessageDecoder {
 
 		if (in.readByte() != Packet.FOOTERS.get(0) || in.readByte() != Packet.FOOTERS.get(1)) {
 			in.clear();
-//			Log.logger(Factory.TCP_RECEIVE, "通过[长度校验]获取包尾数据错误,丢弃本次数据");
+			Log.logger(Factory.TCP_RECEIVE, "通过[长度校验]获取包尾数据错误,丢弃本次数据");
 			return;
 		}
 
@@ -87,7 +90,7 @@ final class TCPDecoder extends ByteToMessageDecoder {
 		//code
 		if (!validateVerify(data, new byte[]{in.readByte(), in.readByte()})) {
 			in.clear();
-//			Log.logger(Factory.TCP_RECEIVE, "[校验码]错误,丢弃本次数据");
+			Log.logger(Factory.TCP_RECEIVE, "[校验码]错误,丢弃本次数据");
 			return;
 		}
 
@@ -99,7 +102,7 @@ final class TCPDecoder extends ByteToMessageDecoder {
 
 		//recursion
 		if (in.readableBytes() > 0) {
-//			Log.logger(Factory.TCP_RECEIVE, LogLevel.TRACE, "解析剩余部分");
+			Log.logger(Factory.TCP_RECEIVE, LogLevel.TRACE, "解析剩余部分");
 			decode(ctx, in, out);
 		}
 	}

@@ -1,5 +1,6 @@
 package com.cat.core.server.udp.session;
 
+import com.cat.core.server.task.FixedTimerTask;
 import com.cat.core.server.task.LoopTask;
 import lombok.NonNull;
 
@@ -11,9 +12,6 @@ public interface UDPHandler {
 
 	void receive(@NonNull UDPInfo info);
 
-	/**
-	 * response udp heart beat
-	 */
 	void response(@NonNull InetSocketAddress target);
 
 	/**
@@ -22,9 +20,9 @@ public interface UDPHandler {
 	void awake(@NonNull InetSocketAddress target);
 
 	/**
-	 * clean stale data
+	 * clean stale data begin at the specified time nearest
 	 */
-	void clean();
+	FixedTimerTask clean();
 
 	/**
 	 * push session data to web server

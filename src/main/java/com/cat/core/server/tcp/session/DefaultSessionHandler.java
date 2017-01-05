@@ -30,18 +30,6 @@ public final class DefaultSessionHandler implements SessionHandler {
 	private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
 	private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
 	private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);
-
-	static {
-//		ExecutorService service = Executors.newSingleThreadExecutor();
-//		service.submit(TCPServer::start);
-//		service.shutdown();
-//
-//		while (!TCPServer.isStarted()) {
-//			Log.logger(Factory.TCP_EVENT, TCPServer.class.getSimpleName() + " is starting...");
-//			ThreadKit.await(Config.SERVER_START_MONITOR_TIME);
-//		}
-	}
-
 	@NonNull
 	private final PortHandler portHandler;
 	@NonNull
@@ -69,9 +57,9 @@ public final class DefaultSessionHandler implements SessionHandler {
 		}
 
 		String ip = info.getIp();
-		int port = info.getPort();//网关udp心跳端口
+		int port = info.getPort();//heart beat port
 
-		int chance = 0;//尝试次数
+		int chance = 0;//try times
 
 		while (chance < 3 && !GATEWAY_MAP.containsKey(sn)) {
 			chance++;
@@ -83,7 +71,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 				return true;
 			}
 
-			int allocated = portHandler.port(ip, sn);//服务器分配端口
+			int allocated = portHandler.port(ip, sn);//tcp allocate port
 			if (allocated != port) {
 				udpHandler.awake(new InetSocketAddress(ip, allocated));
 				ThreadKit.await(Config.GATEWAY_AWAKE_CHECK_TIME);
@@ -236,41 +224,42 @@ public final class DefaultSessionHandler implements SessionHandler {
 
 	@Override
 	public List<LoopTask> monitor() {
-		Log.logger(Factory.TCP_EVENT, "未登录连接数:[" + ACCEPT_MAP.size() + "]");
-		LoopTask acceptTask = () -> ACCEPT_MAP.forEach((id, channel) -> {
-			if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT)) {
-				Log.logger(Factory.TCP_EVENT, "超时未登录,移除");
-				if (ACCEPT_MAP.remove(id, channel)) {
-					channel.close();
+		LoopTask acceptTask = () -> {
+			Log.logger(Factory.TCP_EVENT, "未登录连接数:[" + ACCEPT_MAP.size() + "]");
+			ACCEPT_MAP.forEach((id, channel) -> {
+				if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_LOGIN_TIMEOUT)) {
+					Log.logger(Factory.TCP_EVENT, "超时未登录,移除");
+					if (ACCEPT_MAP.remove(id, channel)) {
+						channel.close();
+					}
 				}
-			}
-		});
-//		TaskHandler.register(acceptTask);
-//		TaskHandler.register(TimerTask.of(acceptTask::execute, 1, f, TimeUnit.SECONDS));
+			});
+		};
 
-		Log.logger(Factory.TCP_EVENT, "TCP APP在线:[" + APP_MAP.size() + "]");
-		LoopTask appTask = () -> APP_MAP.forEach((id, channel) -> {
-			if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
-				Log.logger(Factory.TCP_EVENT, "APP在线时长已到,移除!");
-				if (APP_MAP.remove(id, channel)) {
-					channel.close();
+		LoopTask appTask = () -> {
+			Log.logger(Factory.TCP_EVENT, "TCP APP在线:[" + APP_MAP.size() + "]");
+			APP_MAP.forEach((id, channel) -> {
+				if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
+					Log.logger(Factory.TCP_EVENT, "APP在线时长已到,移除!");
+					if (APP_MAP.remove(id, channel)) {
+						channel.close();
+					}
 				}
-			}
-		});
-//		TaskHandler.register(appTask);
-//		TaskHandler.register(TimerTask.of(appTask::execute, 1, f, TimeUnit.SECONDS));
+			});
+		};
 
-		Log.logger(Factory.TCP_EVENT, "TCP网关在线:[" + GATEWAY_MAP.size() + "]");
-		LoopTask gatewayTask = () -> GATEWAY_MAP.forEach((id, channel) -> {
-			if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_APP_TIMEOUT)) {
-				Log.logger(Factory.TCP_EVENT, "APP在线时长已到,移除!");
-				if (GATEWAY_MAP.remove(id, channel)) {
-					channel.close();
+		LoopTask gatewayTask = () -> {
+			Log.logger(Factory.TCP_EVENT, "TCP网关在线:[" + GATEWAY_MAP.size() + "]");
+			GATEWAY_MAP.forEach((id, channel) -> {
+				if (!ValidateKit.time(ChannelData.info(channel).getHappen(), Config.TCP_GATEWAY_TIMEOUT)) {
+					Log.logger(Factory.TCP_EVENT, "APP在线时长已到,移除!");
+					if (GATEWAY_MAP.remove(id, channel)) {
+						channel.close();
+					}
 				}
-			}
-		});
-//		TaskHandler.register(gatewayTask);
-//		TaskHandler.register(TimerTask.of(gatewayTask::execute, 1, f, TimeUnit.SECONDS));
+			});
+		};
+
 		return Collections.unmodifiableList(Arrays.asList(acceptTask, appTask, gatewayTask));
 	}
 

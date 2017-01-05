@@ -16,9 +16,6 @@ import lombok.Getter;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * TCP服务器
- */
 public final class TCPServer {
 
 	private static final Lock lock = new ReentrantLock();

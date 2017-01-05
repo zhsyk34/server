@@ -13,11 +13,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(staticName = "instance")
 public final class DefaultStateHandler extends AbstractStateHandler {
 	@NonNull
-	private final SessionHandler eventHandler;
+	private final SessionHandler sessionHandler;
 
 	@Override
 	public void onCreate(@NonNull Channel channel) {
-		eventHandler.active(channel);
+		sessionHandler.active(channel);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public final class DefaultStateHandler extends AbstractStateHandler {
 			case APP:
 				break;
 			case GATEWAY:
-				allocated = eventHandler.assign(channel);
+				allocated = sessionHandler.assign(channel);
 				break;
 			default:
 				allocated = -1;
@@ -67,7 +67,6 @@ public final class DefaultStateHandler extends AbstractStateHandler {
 
 		if (allocated == -1) {
 			super.close(channel);
-			System.err.println("---------close-------");
 			return;
 		}
 
@@ -85,11 +84,11 @@ public final class DefaultStateHandler extends AbstractStateHandler {
 
 	@Override
 	public void onSuccess(@NonNull Channel channel) {
-		eventHandler.register(channel);
+		sessionHandler.register(channel);
 	}
 
 	@Override
 	public void onClose(@NonNull Channel channel) {
-		eventHandler.unRegister(channel);
+		sessionHandler.unRegister(channel);
 	}
 }

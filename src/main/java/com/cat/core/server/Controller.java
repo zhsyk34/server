@@ -1,6 +1,8 @@
 package com.cat.core.server;
 
 import com.alibaba.fastjson.JSONObject;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
 import com.cat.core.server.dict.State;
 import com.cat.core.server.task.LoopTask;
 import com.cat.core.server.task.TaskHandler;
@@ -27,7 +29,6 @@ import lombok.NonNull;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * the center controller for server
@@ -41,7 +42,7 @@ public final class Controller {
 	private final PortHandler portHandler = DefaultPortHandler.instance();
 
 	/**
-	 * will start udp client to push message to web server
+	 * will start udp client for push message to web server
 	 */
 	private final PushHandler pushHandler = PushHandler.instance();
 
@@ -52,6 +53,8 @@ public final class Controller {
 	private final StateHandler stateHandler = DefaultStateHandler.instance(sessionHandler);
 
 	private final MessageHandler messageHandler = DefaultMessageHandler.instance(pushHandler, sessionHandler);
+
+	private final TaskHandler taskHandler = TaskHandler.instance();
 
 	/*tcp*/
 	public final void create(@NonNull Channel channel) {
@@ -92,6 +95,7 @@ public final class Controller {
 
 	/*udp*/
 	public final void receive(@NonNull UDPInfo info) {
+		Log.logger(Factory.UDP_RECEIVE, info.toString());
 		udpHandler.receive(info);
 	}
 
@@ -100,22 +104,21 @@ public final class Controller {
 	}
 
 	public final void task() {
+		//loop tasks
 		List<LoopTask> loopTasks = new ArrayList<>();
 
-//		loopTasks.addAll(sessionHandler.monitor());
-//		loopTasks.add(messageHandler.monitor());
+		loopTasks.addAll(sessionHandler.monitor());
+		loopTasks.add(messageHandler.monitor());
 		loopTasks.add(messageHandler.process());
 
-		TaskHandler.register(loopTasks.toArray(new LoopTask[loopTasks.size()]));
+		taskHandler.register(loopTasks.toArray(new LoopTask[loopTasks.size()]));
 
+		//timer tasks
 		List<TimerTask> timerTasks = new ArrayList<>();
-		timerTasks.add(TimerTask.of(messageHandler::monitor, 1, 6, TimeUnit.SECONDS));
+		timerTasks.add(portHandler.recycle());
+		taskHandler.register(timerTasks.toArray(new TimerTask[timerTasks.size()]));
 
-		sessionHandler.monitor().forEach((task) -> timerTasks.add(TimerTask.of(task::execute, 1, 6, TimeUnit.SECONDS)));
-//		timerTasks.add(portHandler.recycle());
-		TaskHandler.register(timerTasks.toArray(new TimerTask[timerTasks.size()]));
-
-		TaskHandler.execute();
+		taskHandler.execute();
 	}
 
 }

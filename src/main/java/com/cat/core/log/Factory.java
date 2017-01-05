@@ -51,7 +51,7 @@ public enum Factory {
 	static LogLevel level(@NonNull Category category) {
 		switch (category) {
 			case RECEIVE:
-				return LogLevel.INFO;
+				return LogLevel.DEBUG;
 			case SEND:
 				return LogLevel.INFO;
 			case EVENT:

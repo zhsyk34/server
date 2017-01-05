@@ -14,14 +14,14 @@ import java.util.List;
 final class UDPCoder extends MessageToMessageCodec<DatagramPacket, DatagramPacket> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) throws Exception {
-		String command = msg.content().toString(CharsetUtil.UTF_8);
-		out.add(msg.replace(Unpooled.wrappedBuffer(CodecKit.encode(command))));
+		String content = msg.content().toString(CharsetUtil.UTF_8);
+		out.add(msg.replace(Unpooled.wrappedBuffer(CodecKit.encode(content))));
 	}
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) throws Exception {
-		ByteBuf buf = msg.content();
-		ByteBuf command = buf.slice(Packet.HEADERS.size() + Packet.LENGTH_BYTES, buf.readableBytes() - Packet.REDUNDANT_BYTES);
-		out.add(msg.replace(CodecKit.decode(command)));
+		ByteBuf content = msg.content();
+		ByteBuf buf = content.slice(Packet.HEADERS.size() + Packet.LENGTH_BYTES, content.readableBytes() - Packet.REDUNDANT_BYTES);
+		out.add(msg.replace(CodecKit.decode(buf)));
 	}
 }

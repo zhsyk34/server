@@ -1,6 +1,5 @@
 package com.cat.core.db;
 
-import com.cat.core.kit.DESKit;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -8,9 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
-@SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
+//TODO
 public class PortDao {
 	private static final String FIND_SQL = "SELECT ip, sn, port, updateTime AS happen FROM udpRecord ORDER BY id LIMIT ?, ?";
 	private static final String SAVE_SQL = "INSERT INTO udpRecord(ip, sn, port, createTime, updateTime) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE port = ?, updateTime = ?";
@@ -23,7 +21,6 @@ public class PortDao {
 	public static void save(UDPRecord record) {
 		JdbcTemplate session = SqlSession.session();
 		session.update(SAVE_SQL, record.getIp(), record.getSn(), record.getPort(), new Timestamp(record.getHappen()), new Timestamp(record.getHappen()), record.getIp(), record.getPort(), new Timestamp(record.getHappen()));
-
 	}
 
 	public static void save(List<UDPRecord> records, final int batchSize) {
@@ -54,22 +51,6 @@ public class PortDao {
 				}
 			});
 		}
-	}
-
-	public static void main(String[] args) {
-		JdbcTemplate session = SqlSession.session();
-		System.out.println(session);
-		List<Map<String, Object>> maps = session.queryForList("SELECT * FROM sessioninfo");
-		System.out.println(maps.size());
-		maps.forEach(map -> {
-			String udid = (String) map.get("udid");
-			String sn = (String) map.get("sn");
-			String expect = DESKit.digestMd5(sn);
-
-			if (!udid.equals(expect)) {
-				System.err.println("error");
-			}
-		});
 	}
 
 }

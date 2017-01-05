@@ -2,7 +2,7 @@ package com.cat.core.server.udp.session;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.ToString;
 
 import java.net.InetSocketAddress;
 
@@ -11,7 +11,7 @@ import java.net.InetSocketAddress;
  */
 @RequiredArgsConstructor(staticName = "of")
 @Getter
-@Setter
+@ToString
 public final class UDPInfo {
 	private final String sn;
 

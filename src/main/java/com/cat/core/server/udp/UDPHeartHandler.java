@@ -14,7 +14,8 @@ import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 
 /**
- * handler for receive the udp heart beat
+ * handler to validate the receive message is correct heart beat
+ * if yes then save and response it
  */
 final class UDPHeartHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 

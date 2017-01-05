@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor(staticName = "instance")
 public final class DefaultMessageHandler implements MessageHandler {
-
 	private static final Map<String, AppRequestQueue> APP_REQUESTS_MAP = new ConcurrentHashMap<>();
 	@NonNull
 	private final PushHandler pushHandler;
@@ -79,6 +78,7 @@ public final class DefaultMessageHandler implements MessageHandler {
 		return () -> {
 			AtomicInteger count = new AtomicInteger();
 			APP_REQUESTS_MAP.forEach((sn, queue) -> count.addAndGet(queue.getQueue().size()));
+			Log.logger(Factory.TCP_EVENT, "共有条[" + count.get() + "]信息待处理");
 			System.err.println("共有条[" + count.get() + "]信息待处理");
 
 			APP_REQUESTS_MAP.forEach((sn, queue) -> {
