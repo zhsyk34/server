@@ -2,6 +2,8 @@ package com.cat.core.server.tcp;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.cat.core.log.Factory;
+import com.cat.core.log.Log;
 import com.cat.core.server.Controller;
 import com.cat.core.server.dict.Action;
 import com.cat.core.server.dict.Key;
@@ -21,6 +23,7 @@ final class TCPLoginHandler extends ChannelInboundHandlerAdapter {
 			return;
 		}
 		String command = (String) msg;
+		Log.logger(Factory.TCP_RECEIVE, command);
 
 		Channel channel = ctx.channel();
 
@@ -34,7 +37,7 @@ final class TCPLoginHandler extends ChannelInboundHandlerAdapter {
 			return;
 		}
 
-		//2.verify and allocate port2(gateway client)
+		//2.verify and allocate port(gateway client)
 		Result result = Result.from(json.getString(Key.RESULT.getName()));
 		String keyCode = json.getString(Key.KEYCODE.getName());
 		if (result == Result.OK && keyCode != null) {

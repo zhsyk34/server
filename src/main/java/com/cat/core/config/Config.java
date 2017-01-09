@@ -5,6 +5,7 @@ package com.cat.core.config;
  * 如无特殊说明,时间的单位均为秒
  */
 public final class Config {
+
 	//TCP服务器默认端口
 	public static final int TCP_SERVER_PORT = 15999;
 	//TCP服务器最大并发连接数
@@ -52,23 +53,23 @@ public final class Config {
 	 */
 	//服务器启动完毕后执行扫描任务
 	public static final int SCHEDULE_TASK_DELAY_TIME = 1;
-	//	//服务器启动状态监视时间间隔
+	//服务器启动状态监视时间间隔
 	public static final int SERVER_START_MONITOR_TIME = 1500;//ms
 	//通过UDP唤醒网关时检测状态时间间隔
 	public static final int GATEWAY_AWAKE_CHECK_TIME = 100;//ms
-	//	/**
-//	 * -----------------------------DB配置-----------------------------
-//	 */
+	/**
+	 * -----------------------------DB配置-----------------------------
+	 */
 	public static final int BATCH_FETCH_SIZE = 10;
-	private static final String LOCAL_HOST = "127.0.0.1";
 	/**
 	 * -----------------------------TCP配置-----------------------------
 	 */
+	private static final String LOCAL_HOST = "127.0.0.1";
 	//TCP服务器地址
 	public static final String TCP_SERVER_HOST = LOCAL_HOST;
 	//网关发送UDP心跳包频率
 	private static final int UDP_HEART_BEAT_FREQ = 10;
-	//UDP信息过期时间
+	//网关心跳信息过期时间
 	public static final int UDP_HEART_BEAT_DUE = UDP_HEART_BEAT_FREQ * 6;
 
 }

@@ -13,12 +13,11 @@ import java.net.InetSocketAddress;
  * operate the session info kits
  */
 public final class ChannelData {
-
 	private static final AttributeKey<LoginInfo> LOGIN_INFO = AttributeKey.newInstance(LoginInfo.class.getSimpleName());
 	private static final AttributeKey<Verifier> VERIFIER = AttributeKey.newInstance(Verifier.class.getSimpleName());
 	private static final AttributeKey<State> STATE = AttributeKey.newInstance(State.class.getSimpleName());
 
-	/*---------------------------------------base dict by channel self---------------------------------------*/
+	/*---------------------------------------base data by channel self---------------------------------------*/
 
 	public static String id(@NonNull Channel channel) {
 		return channel.id().asShortText();
@@ -71,7 +70,7 @@ public final class ChannelData {
 	/*---------------------------------------check kit---------------------------------------*/
 
 	/**
-	 * check apply port2
+	 * check apply port
 	 */
 	private static boolean check(@NonNull Device device, Integer apply) {
 		switch (device) {
@@ -110,11 +109,8 @@ public final class ChannelData {
 			case PASS:
 			case WAIT:
 			case SUCCESS:
-				String sn = info.getSn();
 				Device device = info.getDevice();
-				Verifier verifier = verifier(channel);
-				int apply = info.getApply();
-				return sn != null && device != null && verifier != null && check(device, apply);
+				return info.getSn() != null && device != null && verifier(channel) != null && check(device, info.getApply());
 			default:
 				return false;
 		}

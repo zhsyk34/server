@@ -28,7 +28,7 @@ abstract class AbstractStateHandler implements StateHandler {
 	}
 
 	/**
-	 * update session info by:sn, device and apply port2
+	 * update session info by:sn, device and apply port
 	 * and generator the verifier
 	 */
 	@Override
@@ -103,7 +103,7 @@ abstract class AbstractStateHandler implements StateHandler {
 	}
 
 	/**
-	 * allocate the port2
+	 * allocate the port
 	 */
 	@Override
 	public void wait(@NonNull Channel channel) {
@@ -117,7 +117,7 @@ abstract class AbstractStateHandler implements StateHandler {
 	}
 
 	/**
-	 * update the port2
+	 * update the port
 	 */
 	@Override
 	public void success(@NonNull Channel channel, int allocated) {

@@ -11,6 +11,7 @@ public class AllocateKit {
 		if (ValidateKit.isEmpty(collection)) {
 			return min;
 		}
+
 		List<Integer> list = new ArrayList<>(collection);
 		Collections.sort(list);
 

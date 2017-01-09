@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 会话状态
+ * session status
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter

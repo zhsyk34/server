@@ -38,6 +38,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 
 	@Override
 	public void active(@NonNull Channel channel) {
+		Log.logger(Factory.TCP_EVENT, "[" + ChannelData.ip(channel) + ":" + ChannelData.port(channel) + "] 连接成功");
 		ACCEPT_MAP.put(ChannelData.id(channel), channel);
 	}
 
@@ -45,13 +46,13 @@ public final class DefaultSessionHandler implements SessionHandler {
 	public boolean awake(@NonNull String sn) {
 		Channel channel = GATEWAY_MAP.get(sn);
 		if (channel != null) {
-			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]已登录");
+			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]已登录,无需唤醒");
 			return true;
 		}
 
 		UDPInfo info = udpHandler.find(sn);
 		if (info == null) {
-			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]掉线(无udp心跳),无法唤醒");
+			Log.logger(Factory.TCP_EVENT, "网关[" + sn + "]掉线(无UDP心跳),无法唤醒");
 			return false;
 		}
 
@@ -107,7 +108,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 		String id = ChannelData.id(channel);
 
 		if (ACCEPT_MAP.remove(id) == null) {
-			Log.logger(Factory.TCP_EVENT, "[" + ChannelData.info(channel).getSn() + "]登录超时");
+			Log.logger(Factory.TCP_EVENT, "[" + ChannelData.info(channel).getSn() + "]登录超时,登录失败");
 			return;
 		}
 
@@ -116,13 +117,13 @@ public final class DefaultSessionHandler implements SessionHandler {
 		switch (info.getDevice()) {
 			case APP:
 				original = APP_MAP.put(id, channel);
-				Log.logger(Factory.TCP_EVENT, "app[" + id + "]上线");
+				Log.logger(Factory.TCP_EVENT, "app[" + id + "]登录成功");
 				break;
 			case GATEWAY:
 				pushHandler.push(GatewayInfo.login(channel));
 
 				original = GATEWAY_MAP.put(info.getSn(), channel);
-				Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]上线");
+				Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]登录成功");
 				break;
 			default:
 				original = null;
@@ -154,13 +155,13 @@ public final class DefaultSessionHandler implements SessionHandler {
 			return false;
 		}
 
-		//已进入登录环节
+		//the channel has enter into login
 		switch (device) {
 			case APP:
 				if (APP_MAP.remove(id, channel)) {
 					return true;
 				}
-				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "客户端关闭出错,在app队列中查找不到该连接(可能在线时长已到被移除或网关重新登录关闭原有连接)");
+				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + "客户端关闭出错,在APP队列中查找不到该连接(可能因为线时长已到被移除)");
 				return false;
 			case GATEWAY:
 				//different with close(key)
@@ -170,7 +171,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 					Log.logger(Factory.TCP_EVENT, "网关[" + info.getSn() + "]下线");
 					return true;
 				}
-				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关关闭出错,在网关队列中查找不到该连接(可能在线时长已到被移除)");
+				Log.logger(Factory.TCP_ERROR, channel.remoteAddress() + " 网关关闭出错,在网关队列中查找不到该连接(可能因在线时长已到被移除或重新登录时被关闭)");
 				return false;
 			default:
 				Log.logger(Factory.TCP_ERROR, "关闭出错,非法的登录数据");
@@ -196,6 +197,7 @@ public final class DefaultSessionHandler implements SessionHandler {
 					}
 					break;
 				default:
+					break;
 			}
 		}
 

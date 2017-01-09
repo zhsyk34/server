@@ -14,8 +14,9 @@ public class PortDao {
 	private static final String SAVE_SQL = "INSERT INTO udpRecord(ip, sn, port, createTime, updateTime) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE port = ?, updateTime = ?";
 
 	public static List<UDPRecord> find(int offset, int limit) {
-		JdbcTemplate session = SqlSession.session();
-		return session.query(FIND_SQL, new Object[]{offset, limit}, (rs, rowNum) -> new UDPRecord(rs.getString("ip"), rs.getString("sn"), rs.getInt("port"), rs.getTimestamp("happen").getTime()));
+//		JdbcTemplate session = SqlSession.session();
+//		return session.query(FIND_SQL, new Object[]{offset, limit}, (rs, rowNum) -> new UDPRecord(rs.getString("ip"), rs.getString("sn"), rs.getInt("port"), rs.getTimestamp("happen").getTime()));
+		return null;
 	}
 
 	public static void save(UDPRecord record) {

@@ -4,7 +4,6 @@ import com.cat.core.config.Config;
 import com.cat.core.db.PortDao;
 import com.cat.core.db.UDPRecord;
 import com.cat.core.kit.AllocateKit;
-import com.cat.core.kit.ThreadKit;
 import com.cat.core.kit.ValidateKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
@@ -30,12 +29,7 @@ public final class DefaultPortHandler implements PortHandler {
 	private static final Map<String, Map<String, Record>> PORT_MAP = new ConcurrentHashMap<>();
 
 	static {
-		for (int i = 0; i < 4; i++) {
-			ThreadKit.await(300);
-			Log.logger(Factory.UDP_EVENT, "----------load port data................");
-		}
-		Log.logger(Factory.UDP_EVENT, "----------load port data success.");
-//		init();
+		init();
 	}
 
 	/**
@@ -55,16 +49,11 @@ public final class DefaultPortHandler implements PortHandler {
 			cursor += Config.BATCH_FETCH_SIZE;
 		}
 
-		StringBuilder builder = new StringBuilder();
-		builder.append("加载完毕:\n");
-		builder.append("----------------------------------\n");
-		PORT_MAP.forEach((ip, map) -> builder.append("ip[").append(ip).append("]下有[").append(map.size()).append("]个端口正被使用\n"));
-		builder.append("----------------------------------\n");
-		Log.logger(Factory.TCP_EVENT, builder.toString());
+		Log.logger(Factory.TCP_EVENT, "加载完毕:\n");
 	}
 
 	/**
-	 * if only used call once at init method synchronized is not necessary
+	 * if only call once at init method synchronized is not necessary
 	 */
 	private static void register(@NonNull UDPRecord record) {
 		final Map<String, Record> map;

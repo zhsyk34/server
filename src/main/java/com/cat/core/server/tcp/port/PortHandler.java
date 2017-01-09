@@ -5,7 +5,7 @@ import com.cat.core.server.task.FixedTimerTask;
 public interface PortHandler {
 
 	/**
-	 * get the port for sn int the ip
+	 * get the port for sn in the ip
 	 */
 	int port(String ip, String sn);
 

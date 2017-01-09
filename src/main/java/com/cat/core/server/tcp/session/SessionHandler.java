@@ -24,7 +24,7 @@ public interface SessionHandler {
 	boolean awake(@NonNull String sn);
 
 	/**
-	 * allocate udp port2 if necessary(just for gateway)
+	 * allocate udp port if necessary(just for gateway)
 	 */
 	int assign(@NonNull Channel channel);
 

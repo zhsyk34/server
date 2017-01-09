@@ -1,6 +1,6 @@
 package com.cat.core.server.udp;
 
-import com.cat.core.dict.Packet;
+import com.cat.core.dict.Protocol;
 import com.cat.core.kit.CodecKit;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -21,7 +21,7 @@ final class UDPCoder extends MessageToMessageCodec<DatagramPacket, DatagramPacke
 	@Override
 	protected void decode(ChannelHandlerContext ctx, DatagramPacket msg, List<Object> out) throws Exception {
 		ByteBuf content = msg.content();
-		ByteBuf buf = content.slice(Packet.HEADERS.size() + Packet.LENGTH_BYTES, content.readableBytes() - Packet.REDUNDANT_BYTES);
+		ByteBuf buf = content.slice(Protocol.HEADERS.size() + Protocol.LENGTH_BYTES, content.readableBytes() - Protocol.REDUNDANT_BYTES);
 		out.add(msg.replace(CodecKit.decode(buf)));
 	}
 }

@@ -32,20 +32,20 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 		if (!(msg instanceof String)) {
 			return;
 		}
+		Channel channel = ctx.channel();
 		String command = (String) msg;
 
 		JSONObject json = JsonKit.map(command);
 		Action action = Action.from(json.getString(Key.ACTION.getName()));
 		Result result = Result.from(json.getString(Key.RESULT.getName()));
 
-		Channel channel = ctx.channel();
 		LoginInfo info = ChannelData.info(channel);
 		String sn = info.getSn();
 
 		switch (info.getDevice()) {
 			case APP:
 				if (action != null) {
-					Log.logger(Factory.TCP_RECEIVE, "客户端请求[" + command + "],将其添加到消息处理队列...");
+					Log.logger(Factory.TCP_RECEIVE, "APP请求[" + command + "],将其添加到消息处理队列...");
 					controller.receive(sn, AppRequest.of(ChannelData.id(channel), command));
 				}
 				return;
@@ -70,7 +70,9 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 
 				//3.版本
 				if (action == Action.GET_VERSION) {
-					//TODO
+					//append sn
+					json.put(Key.SN.getName(), sn);
+					controller.version(json);
 					return;
 				}
 

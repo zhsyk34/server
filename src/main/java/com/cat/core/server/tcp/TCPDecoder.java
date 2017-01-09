@@ -1,7 +1,7 @@
 package com.cat.core.server.tcp;
 
 import com.cat.core.config.Config;
-import com.cat.core.dict.Packet;
+import com.cat.core.dict.Protocol;
 import com.cat.core.kit.ByteKit;
 import com.cat.core.kit.DESKit;
 import com.cat.core.log.Factory;
@@ -19,7 +19,7 @@ import static com.cat.core.kit.CodecKit.validateVerify;
 /**
  * 解码TCP服务器接收到的数据
  * 由于业务处理场景基于一问一答方式,故此每次解码默认只有一个包
- * 具体解码时简单处理了粘包的问题,主要发生在网关主动推送信息时
+ * 具体解码时简单处理了粘包的问题(主要发生在网关主动推送信息时)//TODO
  * <p>
  * 当包头数据非法时直接丢弃数据,否则等待正确的包尾数据直至缓冲区大于指定值
  * 当包头包尾均正确时开始解析:
@@ -34,8 +34,8 @@ final class TCPDecoder extends ByteToMessageDecoder {
 		final int size = in.readableBytes();
 
 		//length
-		if (size < Packet.MSG_MIN_LENGTH) {
-			Log.logger(Factory.TCP_RECEIVE, "等待数据中...数据至少应有[" + Packet.MSG_MIN_LENGTH + "]位");
+		if (size < Protocol.MSG_MIN_LENGTH) {
+			Log.logger(Factory.TCP_RECEIVE, "等待数据中...数据至少应有[" + Protocol.MSG_MIN_LENGTH + "]位");
 			return;
 		}
 		if (size > Config.TCP_BUFFER_SIZE) {
@@ -47,14 +47,14 @@ final class TCPDecoder extends ByteToMessageDecoder {
 		in.markReaderIndex();
 
 		//header
-		if (in.readByte() != Packet.HEADERS.get(0) || in.readByte() != Packet.HEADERS.get(1)) {
+		if (in.readByte() != Protocol.HEADERS.get(0) || in.readByte() != Protocol.HEADERS.get(1)) {
 			in.clear();
 			Log.logger(Factory.TCP_RECEIVE, "包头数据错误,丢弃本次数据");
 			return;
 		}
 
 		//direct to check footer
-		if (in.getByte(size - 2) != Packet.FOOTERS.get(0) || in.getByte(size - 1) != Packet.FOOTERS.get(1)) {
+		if (in.getByte(size - 2) != Protocol.FOOTERS.get(0) || in.getByte(size - 1) != Protocol.FOOTERS.get(1)) {
 			in.resetReaderIndex();
 			Log.logger(Factory.TCP_RECEIVE, "包尾数据错误,尝试继续等待...");
 			return;
@@ -62,9 +62,9 @@ final class TCPDecoder extends ByteToMessageDecoder {
 
 		//length
 		int length = ByteKit.byteArrayToInt(new byte[]{in.readByte(), in.readByte()});
-		int actual = length - Packet.LENGTH_BYTES - Packet.VERIFY_BYTES;
+		int actual = length - Protocol.LENGTH_BYTES - Protocol.VERIFY_BYTES;
 		Log.logger(Factory.TCP_RECEIVE, LogLevel.TRACE, "校验长度:[" + length + "], 指令长度应为:[" + actual + "]");
-		if (actual < Packet.MIN_DATA_BYTES || actual > size - Packet.REDUNDANT_BYTES) {
+		if (actual < Protocol.MIN_DATA_BYTES || actual > size - Protocol.REDUNDANT_BYTES) {
 			in.clear();
 			Log.logger(Factory.TCP_RECEIVE, "[长度校验数据]校验错误,丢弃本次数据");
 			return;
@@ -72,9 +72,9 @@ final class TCPDecoder extends ByteToMessageDecoder {
 
 		//skip dict and verify code to check footer again
 		in.markReaderIndex();
-		in.skipBytes(actual + Packet.VERIFY_BYTES);
+		in.skipBytes(actual + Protocol.VERIFY_BYTES);
 
-		if (in.readByte() != Packet.FOOTERS.get(0) || in.readByte() != Packet.FOOTERS.get(1)) {
+		if (in.readByte() != Protocol.FOOTERS.get(0) || in.readByte() != Protocol.FOOTERS.get(1)) {
 			in.clear();
 			Log.logger(Factory.TCP_RECEIVE, "通过[长度校验]获取包尾数据错误,丢弃本次数据");
 			return;
@@ -95,7 +95,7 @@ final class TCPDecoder extends ByteToMessageDecoder {
 		}
 
 		//skip footer
-		in.skipBytes(Packet.FOOTERS.size());
+		in.skipBytes(Protocol.FOOTERS.size());
 
 		String command = new String(DESKit.decrypt(data), CharsetUtil.UTF_8);
 		out.add(command);

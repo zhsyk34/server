@@ -21,6 +21,7 @@ import com.cat.core.server.tcp.state.StateHandler;
 import com.cat.core.server.udp.session.DefaultUDPHandler;
 import com.cat.core.server.udp.session.UDPHandler;
 import com.cat.core.server.udp.session.UDPInfo;
+import com.cat.core.server.web.DefaultPushHandler;
 import com.cat.core.server.web.PushHandler;
 import io.netty.channel.Channel;
 import lombok.NoArgsConstructor;
@@ -44,7 +45,7 @@ public class Controller {
 	/**
 	 * will start udp client for push message to web server
 	 */
-	private final PushHandler pushHandler = PushHandler.instance();
+	private final PushHandler pushHandler = DefaultPushHandler.instance();
 
 	private final UDPHandler udpHandler = DefaultUDPHandler.instance(pushHandler);
 
@@ -91,6 +92,10 @@ public class Controller {
 
 	public final void response(@NonNull String sn, @NonNull String msg) {
 		messageHandler.response(sn, msg);
+	}
+
+	public final boolean version(@NonNull JSONObject json) {
+		return pushHandler.push(json.toString());
 	}
 
 	/*-------------------------------------udp-------------------------------------*/

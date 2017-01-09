@@ -25,6 +25,7 @@ public final class TCPServer {
 
 	public static void start() {
 		lock.lock();
+
 		if (started) {
 			return;
 		}
@@ -53,19 +54,22 @@ public final class TCPServer {
 		bootstrap.childHandler(new TCPInitializer());
 
 		try {
-			ChannelFuture future = bootstrap.bind(Config.TCP_SERVER_HOST, Config.TCP_SERVER_PORT).sync();
+			Channel channel = bootstrap.bind(Config.TCP_SERVER_HOST, Config.TCP_SERVER_PORT).sync().channel();
 
 			started = true;
+
 			lock.unlock();
 
 			Log.logger(Factory.TCP_EVENT, TCPServer.class.getSimpleName() + " start success at port[" + Config.TCP_SERVER_PORT + "]");
 
-			future.channel().closeFuture().sync();
+			channel.closeFuture().sync();
 		} catch (InterruptedException e) {
 			lock.unlock();
+
 			e.printStackTrace();
 		} finally {
 			lock.unlock();
+
 			mainGroup.shutdownGracefully();
 			handleGroup.shutdownGracefully();
 		}

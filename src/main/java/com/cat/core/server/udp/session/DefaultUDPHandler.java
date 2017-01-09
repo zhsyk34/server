@@ -73,7 +73,7 @@ public final class DefaultUDPHandler implements UDPHandler {
 	public LoopTask push() {
 		final int batch = Config.UDP_SESSION_PUSH_BATCH;
 		return () -> {
-			Log.logger(Factory.UDP_EVENT, "begin to push udp session info,total count[" + GATEWAY_INFO_MAP.size() + "]");
+			Log.logger(Factory.UDP_SEND, "begin to push udp session info,total count[" + GATEWAY_INFO_MAP.size() + "]");
 			List<UDPInfo> list = new ArrayList<>(GATEWAY_INFO_MAP.values());
 
 			for (int i = 0; i < list.size(); i += batch) {

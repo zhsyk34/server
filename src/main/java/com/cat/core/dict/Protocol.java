@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * TCP包数据格式
+ * TCP packet protocol
  */
-public final class Packet {
+public final class Protocol {
 	//header
 	public static final List<Byte> HEADERS = Collections.unmodifiableList(Arrays.asList((byte) 0x5A, (byte) 0xA5));
 	//footer
