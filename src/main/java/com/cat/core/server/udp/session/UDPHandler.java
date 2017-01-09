@@ -1,6 +1,5 @@
 package com.cat.core.server.udp.session;
 
-import com.cat.core.server.task.FixedTimerTask;
 import com.cat.core.server.task.LoopTask;
 import lombok.NonNull;
 
@@ -22,7 +21,7 @@ public interface UDPHandler {
 	/**
 	 * clean stale data begin at the specified time nearest
 	 */
-	FixedTimerTask clean();
+	LoopTask clean();
 
 	/**
 	 * push session data to web server

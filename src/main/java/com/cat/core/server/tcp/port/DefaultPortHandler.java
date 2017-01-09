@@ -8,13 +8,14 @@ import com.cat.core.kit.ThreadKit;
 import com.cat.core.kit.ValidateKit;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
-import com.cat.core.server.task.TimerTask;
+import com.cat.core.server.task.FixedTimerTask;
 import io.netty.handler.logging.LogLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -144,7 +145,7 @@ public final class DefaultPortHandler implements PortHandler {
 	}
 
 	@Override
-	public TimerTask recycle() {
+	public FixedTimerTask recycle() {
 		Runnable task = () -> {
 			//重新分组:转为(sn,(ip,record))
 			final Map<String, Map<String, Record>> snMap = new HashMap<>();
@@ -186,7 +187,8 @@ public final class DefaultPortHandler implements PortHandler {
 			});
 		};
 
-		return TimerTask.of(task, 6, 6, TimeUnit.HOURS);
+		//every day at 00:00
+		return FixedTimerTask.of(task, LocalTime.MIN, Config.TCP_ALLOT_UDP_PORT_RECYCLE, TimeUnit.DAYS);
 	}
 
 	@AllArgsConstructor(access = AccessLevel.PRIVATE, staticName = "of")

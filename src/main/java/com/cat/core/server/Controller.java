@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.cat.core.log.Factory;
 import com.cat.core.log.Log;
 import com.cat.core.server.dict.State;
+import com.cat.core.server.task.FixedTimerTask;
 import com.cat.core.server.task.LoopTask;
 import com.cat.core.server.task.TaskHandler;
-import com.cat.core.server.task.TimerTask;
 import com.cat.core.server.tcp.message.AppRequest;
 import com.cat.core.server.tcp.message.DefaultMessageHandler;
 import com.cat.core.server.tcp.message.MessageHandler;
@@ -34,7 +34,7 @@ import java.util.List;
  * the center controller for server
  */
 @NoArgsConstructor(staticName = "instance")
-public final class Controller {
+public class Controller {
 
 	/**
 	 * will load data from db
@@ -56,7 +56,7 @@ public final class Controller {
 
 	private final TaskHandler taskHandler = TaskHandler.instance();
 
-	/*tcp*/
+	/*-------------------------------------tcp-------------------------------------*/
 	public final void create(@NonNull Channel channel) {
 		stateHandler.create(channel);
 	}
@@ -77,7 +77,7 @@ public final class Controller {
 		return ChannelData.state(channel) == State.SUCCESS;
 	}
 
-	public final boolean push(@NonNull String msg) {
+	private boolean push(@NonNull String msg) {
 		return messageHandler.push(msg);
 	}
 
@@ -93,7 +93,7 @@ public final class Controller {
 		messageHandler.response(sn, msg);
 	}
 
-	/*udp*/
+	/*-------------------------------------udp-------------------------------------*/
 	public final void receive(@NonNull UDPInfo info) {
 		Log.logger(Factory.UDP_RECEIVE, info.toString());
 		udpHandler.receive(info);
@@ -104,20 +104,35 @@ public final class Controller {
 	}
 
 	public final void task() {
-		//loop tasks
+		/*---------------loop tasks---------------*/
 		List<LoopTask> loopTasks = new ArrayList<>();
-
+		//tcp connect monitor:连接超时监控
 		loopTasks.addAll(sessionHandler.monitor());
+		//message process monitor:消息处理超时监控
 		loopTasks.add(messageHandler.monitor());
+		//message process handler:消息处理
 		loopTasks.add(messageHandler.process());
+		//udp session push:推送udp心跳信息
+		loopTasks.add(udpHandler.push());
+		//udp session info clean:清理过期心跳数据
+		loopTasks.add(udpHandler.clean());
 
 		taskHandler.register(loopTasks.toArray(new LoopTask[loopTasks.size()]));
 
-		//timer tasks
-		List<TimerTask> timerTasks = new ArrayList<>();
-		timerTasks.add(portHandler.recycle());
-		taskHandler.register(timerTasks.toArray(new TimerTask[timerTasks.size()]));
+		/*---------------timer tasks---------------*/
+		/*List<TimerTask> timerTasks = new ArrayList<>();
 
+		taskHandler.register(timerTasks.toArray(new TimerTask[timerTasks.size()]));*/
+
+
+		/*---------------fixed timer tasks---------------*/
+		List<FixedTimerTask> fixedTimerTasks = new ArrayList<>();
+
+		//tcp allocate udp port recycle:回收tcp服务器分配的udp端口
+		fixedTimerTasks.add(portHandler.recycle());
+
+		taskHandler.register(fixedTimerTasks.toArray(new FixedTimerTask[fixedTimerTasks.size()]));
+		//执行
 		taskHandler.execute();
 	}
 

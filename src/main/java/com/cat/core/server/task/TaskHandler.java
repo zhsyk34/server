@@ -37,7 +37,7 @@ public final class TaskHandler {
 			LOOP_TASKS.forEach(task -> service.submit(() -> {
 				while (true) {
 					//TODO :TEST
-					ThreadKit.await(10 * 1000);
+					ThreadKit.await(20 * 1000);
 					task.execute();
 				}
 			}));

@@ -85,7 +85,7 @@ final class AppRequestQueue {
 	 * and return clone queue for process after
 	 */
 	synchronized Queue<AppRequest> clear() {
-		if (send && !ValidateKit.time(time, Config.TCP_MESSAGE_HANDLE_TIMEOUT)) {
+		if (send && !ValidateKit.time(time, Config.TCP_MESSAGE_TIMEOUT)) {
 			BlockingQueue<AppRequest> copy = new LinkedBlockingQueue<>(queue);
 			queue.clear();
 			this.reset();

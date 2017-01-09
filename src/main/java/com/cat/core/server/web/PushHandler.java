@@ -33,6 +33,7 @@ public final class PushHandler {
 	}
 
 	public boolean push(@NonNull String msg) {
+		Log.logger(Factory.UDP_EVENT, "push msg:" + msg);
 		Channel channel = UDPClient.getChannel();
 		if (channel == null) {
 			return false;

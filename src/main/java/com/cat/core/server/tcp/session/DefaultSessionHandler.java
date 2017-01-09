@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor(staticName = "instance")
 public final class DefaultSessionHandler implements SessionHandler {
-
 	private static final Map<String, Channel> ACCEPT_MAP = new ConcurrentHashMap<>();
 	private static final Map<String, Channel> APP_MAP = new ConcurrentHashMap<>(Config.TCP_APP_COUNT_PREDICT);
 	private static final Map<String, Channel> GATEWAY_MAP = new ConcurrentHashMap<>(Config.TCP_GATEWAY_COUNT_PREDICT);

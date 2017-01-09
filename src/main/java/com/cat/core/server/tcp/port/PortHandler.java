@@ -1,6 +1,6 @@
 package com.cat.core.server.tcp.port;
 
-import com.cat.core.server.task.TimerTask;
+import com.cat.core.server.task.FixedTimerTask;
 
 public interface PortHandler {
 
@@ -19,5 +19,5 @@ public interface PortHandler {
 	 * when ip change port will allocated again
 	 * release history data
 	 */
-	TimerTask recycle();
+	FixedTimerTask recycle();
 }

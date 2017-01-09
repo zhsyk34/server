@@ -30,7 +30,7 @@ public enum Key {
 	/**
 	 * 推送
 	 */
-	DATA("dict", "推送UDP数组数据信息");
+	DATA("data", "推送UDP数组数据信息");
 
 	@NonNull
 	private final String name;

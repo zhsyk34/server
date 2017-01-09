@@ -82,7 +82,7 @@ public final class DefaultMessageHandler implements MessageHandler {
 			System.err.println("共有条[" + count.get() + "]信息待处理");
 
 			APP_REQUESTS_MAP.forEach((sn, queue) -> {
-				if (queue.isSend() && !ValidateKit.time(queue.getTime(), Config.TCP_MESSAGE_HANDLE_TIMEOUT)) {
+				if (queue.isSend() && !ValidateKit.time(queue.getTime(), Config.TCP_MESSAGE_TIMEOUT)) {
 					sessionHandler.close(sn, Device.GATEWAY);
 					Queue<AppRequest> history = queue.clear();
 					if (history != null) {
