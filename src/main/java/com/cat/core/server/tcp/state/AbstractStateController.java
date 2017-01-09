@@ -8,7 +8,7 @@ import lombok.NonNull;
  * unrealized method as follow:
  * onCreate,onReady,onVerify,onWait,onSuccess,onClose
  */
-abstract class AbstractStateHandler implements StateHandler {
+abstract class AbstractStateController implements StateController {
 
 	/**
 	 * active session info and save the connect time
@@ -145,5 +145,4 @@ abstract class AbstractStateHandler implements StateHandler {
 			this.onClose(channel);
 		}
 	}
-
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @NoArgsConstructor(staticName = "instance")
-public final class DefaultPushHandler implements PushHandler {
+public final class DefaultPushController implements PushController {
 	private static final InetSocketAddress WEB_UDP_SERVICE = new InetSocketAddress(Config.UDP_WEB_IP, Config.UDP_WEB_PORT);
 
 	static {
@@ -43,5 +43,4 @@ public final class DefaultPushHandler implements PushHandler {
 		channel.writeAndFlush(new DatagramPacket(buf, WEB_UDP_SERVICE));
 		return true;
 	}
-
 }

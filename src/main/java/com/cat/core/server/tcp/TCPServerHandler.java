@@ -72,7 +72,7 @@ final class TCPServerHandler extends ChannelInboundHandlerAdapter {
 				if (action == Action.GET_VERSION) {
 					//append sn
 					json.put(Key.SN.getName(), sn);
-					controller.version(json);
+					controller.push(json);
 					return;
 				}
 

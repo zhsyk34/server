@@ -7,7 +7,7 @@ import lombok.NonNull;
 
 import java.util.List;
 
-public interface SessionHandler {
+public interface SessionController {
 	/**
 	 * get channel
 	 */

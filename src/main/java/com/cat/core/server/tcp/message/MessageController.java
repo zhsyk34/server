@@ -3,7 +3,7 @@ package com.cat.core.server.tcp.message;
 import com.cat.core.server.task.LoopTask;
 import lombok.NonNull;
 
-public interface MessageHandler {
+public interface MessageController {
 
 	boolean receive(@NonNull String sn, @NonNull AppRequest request);
 

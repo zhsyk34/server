@@ -18,11 +18,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * udp client:push data to web service
+ * send version request
  */
 final class UDPClient {
-
 	private static final Lock lock = new ReentrantLock();
-
 	@Getter
 	private static volatile Channel channel;
 
@@ -41,6 +40,7 @@ final class UDPClient {
 			bootstrap.handler(new ChannelInitializer<DatagramChannel>() {
 				@Override
 				protected void initChannel(DatagramChannel ch) throws Exception {
+					ch.pipeline().addLast(new UDPHandler());
 				}
 			});
 
@@ -59,5 +59,4 @@ final class UDPClient {
 			group.shutdownGracefully();
 		}
 	}
-
 }

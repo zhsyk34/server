@@ -17,13 +17,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * udp server
- * receive and save udp heart beat info to awaken it to login by tcp
+ * receive and save udp heart-beat info for awaken udp-client(self) to login by tcp
  */
 public final class UDPServer {
-
 	private static final Lock lock = new ReentrantLock();
-
 	@Getter
 	private static volatile Channel channel;
 
@@ -42,7 +39,7 @@ public final class UDPServer {
 			bootstrap.handler(new ChannelInitializer<DatagramChannel>() {
 				@Override
 				protected void initChannel(DatagramChannel ch) throws Exception {
-					ch.pipeline().addLast(new UDPCoder(), new UDPHeartHandler());
+					ch.pipeline().addLast(new UDPCoder(), new UDPHandler());
 				}
 			});
 

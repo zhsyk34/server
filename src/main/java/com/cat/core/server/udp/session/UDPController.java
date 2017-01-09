@@ -5,10 +5,7 @@ import lombok.NonNull;
 
 import java.net.InetSocketAddress;
 
-/**
- * udp server handler
- */
-public interface UDPHandler {
+public interface UDPController {
 
 	UDPInfo find(@NonNull String sn);
 

@@ -14,11 +14,10 @@ import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 
 /**
- * handler to validate the receive message is correct heart beat
+ * validate the receive message is correct heart beat
  * if yes then save and response it
  */
-final class UDPHeartHandler extends SimpleChannelInboundHandler<DatagramPacket> {
-
+final class UDPHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 	private final Controller controller = Controller.instance();
 
 	private UDPInfo validate(DatagramPacket msg) {
@@ -51,5 +50,4 @@ final class UDPHeartHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 			controller.response(msg.sender());
 		}
 	}
-
 }

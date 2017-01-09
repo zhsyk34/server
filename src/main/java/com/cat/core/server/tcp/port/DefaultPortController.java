@@ -21,8 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(staticName = "instance")
-public final class DefaultPortHandler implements PortHandler {
-
+public final class DefaultPortController implements PortController {
 	/**
 	 * <ip, Map<sn, Record>>
 	 */
@@ -45,7 +44,7 @@ public final class DefaultPortHandler implements PortHandler {
 			if (ValidateKit.isEmpty(list)) {
 				break;
 			}
-			list.forEach(DefaultPortHandler::register);
+			list.forEach(DefaultPortController::register);
 			cursor += Config.BATCH_FETCH_SIZE;
 		}
 

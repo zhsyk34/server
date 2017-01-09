@@ -10,7 +10,7 @@ import com.cat.core.server.dict.Key;
 import com.cat.core.server.dict.Result;
 import com.cat.core.server.task.LoopTask;
 import com.cat.core.server.udp.UDPServer;
-import com.cat.core.server.web.PushHandler;
+import com.cat.core.server.web.PushController;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -26,10 +26,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor(staticName = "instance")
-public final class DefaultUDPHandler implements UDPHandler {
+public final class DefaultUDPController implements UDPController {
 	private static final Map<String, UDPInfo> GATEWAY_INFO_MAP = new ConcurrentHashMap<>();
 	@NonNull
-	private final PushHandler pushHandler;
+	private final PushController pushController;
 
 	private static void send(InetSocketAddress target, JSONObject json) {
 		Channel channel = UDPServer.getChannel();
@@ -80,9 +80,8 @@ public final class DefaultUDPHandler implements UDPHandler {
 				JSONObject json = new JSONObject();
 				json.put(Key.ACTION.getName(), Action.UDP_SESSION_PUSH.getName());
 				json.put(Key.DATA.getName(), list.subList(i, Math.min(i + batch, list.size())));
-				pushHandler.push(json.toString());
+				pushController.push(json.toString());
 			}
 		};
 	}
-
 }

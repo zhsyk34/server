@@ -5,19 +5,19 @@ import com.cat.core.server.dict.Action;
 import com.cat.core.server.dict.ErrNo;
 import com.cat.core.server.dict.Key;
 import com.cat.core.server.dict.Result;
-import com.cat.core.server.tcp.session.SessionHandler;
+import com.cat.core.server.tcp.session.SessionController;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(staticName = "instance")
-public final class DefaultStateHandler extends AbstractStateHandler {
+public final class DefaultStateController extends AbstractStateController {
 	@NonNull
-	private final SessionHandler sessionHandler;
+	private final SessionController sessionController;
 
 	@Override
 	public void onCreate(@NonNull Channel channel) {
-		sessionHandler.active(channel);
+		sessionController.active(channel);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public final class DefaultStateHandler extends AbstractStateHandler {
 			case APP:
 				break;
 			case GATEWAY:
-				allocated = sessionHandler.assign(channel);
+				allocated = sessionController.assign(channel);
 				break;
 			default:
 				allocated = -1;
@@ -84,11 +84,11 @@ public final class DefaultStateHandler extends AbstractStateHandler {
 
 	@Override
 	public void onSuccess(@NonNull Channel channel) {
-		sessionHandler.register(channel);
+		sessionController.register(channel);
 	}
 
 	@Override
 	public void onClose(@NonNull Channel channel) {
-		sessionHandler.unRegister(channel);
+		sessionController.unRegister(channel);
 	}
 }

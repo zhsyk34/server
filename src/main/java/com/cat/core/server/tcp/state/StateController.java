@@ -7,7 +7,7 @@ import lombok.NonNull;
  * validate state for event to session
  * and process after each state change
  */
-public interface StateHandler {
+public interface StateController {
 
 	void create(@NonNull Channel channel);
 

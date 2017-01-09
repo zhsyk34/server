@@ -2,7 +2,7 @@ package com.cat.core.server.tcp.port;
 
 import com.cat.core.server.task.FixedTimerTask;
 
-public interface PortHandler {
+public interface PortController {
 
 	/**
 	 * get the port for sn in the ip

@@ -16,12 +16,14 @@ public class Main {
 
 		ExecutorService service = Executors.newCachedThreadPool();
 
+		//udp server
 		service.submit(UDPServer::start);
 		while (UDPServer.getChannel() == null) {
 			Log.logger(Factory.UDP_EVENT, UDPServer.class.getSimpleName() + " is starting...");
 			ThreadKit.await(Config.SERVER_START_MONITOR_TIME);
 		}
 
+		//tcp server
 		service.submit(TCPServer::start);
 		while (!TCPServer.isStarted()) {
 			Log.logger(Factory.TCP_EVENT, TCPServer.class.getSimpleName() + " is starting...");

@@ -22,7 +22,7 @@ public enum State {
 	SUCCESS(6, "登录成功"),
 	CLOSED(7, "连接关闭");
 
-	public static final Map<Integer, State> MAP = new HashMap<>();
+	private static final Map<Integer, State> MAP = new HashMap<>();
 
 	static {
 		for (State state : values()) {

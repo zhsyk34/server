@@ -11,10 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @NoArgsConstructor(staticName = "instance")
-public final class TaskHandler {
-
+public final class TaskController {
 	private static final List<LoopTask> LOOP_TASKS = new ArrayList<>();
-
 	private static final List<TimerTask> TIMER_TASKS = new ArrayList<>();
 
 	public void register(LoopTask... tasks) {
